@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Buta Studio Salonbeheer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gloock&family=Great+Vibes&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Salon desk: the day as a timeline per table, requests inbox on the side, one tap to act. Same palette as the public site. */
+:root{--porcelain:#F5EFFC;--milk:#F5D6E1;--pearl:#E6DAF5;--plum:#251733;--mute:#685B7C;--cherry:#6B3FB3;--velvet:#24123D;--ok:#2F7A4C;--okbg:#E3F1E8;--warn:#9A6410;--warnbg:#FBEFD9;
+ --c-nagels:#DCC9F6;--c-handvoet:#F5DDE4;--c-ogen:#D9EBE2;--c-massage:#EFE3CC;--c-waxen:#EDE4F3;--c-blok:#ECE8F1;
+ --serif:"Gloock","Bodoni 72",Georgia,serif;--sans:"Jost","Avenir Next","Segoe UI",Arial,sans-serif;--script:"Great Vibes","Snell Roundhand",cursive;--hour:88px;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--porcelain);color:var(--plum);font:400 16px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--cherry);outline-offset:2px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border-radius:999px;border:1.5px solid var(--plum);background:var(--plum);color:var(--porcelain);font-weight:600;text-decoration:none;white-space:nowrap}
+.btn:hover{background:var(--cherry);border-color:var(--cherry)}
+.btn.line{background:#fff;color:var(--plum);border-color:var(--pearl)}
+.btn.line:hover{border-color:var(--plum);background:#fff}
+.btn.sm{min-height:36px;padding:0 13px;font-size:14px}
+.btn.ok{background:var(--ok);border-color:var(--ok)}
+.btn.bad{background:#fff;color:var(--cherry);border-color:#E6C3C9}
+
+/* login */
+#login{position:fixed;inset:0;z-index:100;background:var(--velvet);display:grid;place-items:center;padding:20px}
+.lg{background:var(--porcelain);border-radius:28px;padding:34px;width:min(380px,100%);text-align:center}
+.lg h1{font:400 46px/1 var(--serif);color:var(--plum);margin:0 0 6px}
+.lg p{color:var(--mute);margin:0 0 22px}
+.pin{display:flex;justify-content:center;gap:10px;margin-bottom:18px}
+.pin span{width:16px;height:16px;border-radius:50%;border:2px solid var(--plum)}
+.pin span.on{background:var(--plum)}
+.keys{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.keys button{min-height:60px;border-radius:18px;border:1.5px solid var(--pearl);background:#fff;font:400 28px var(--serif)}
+.keys button:active{background:var(--milk)}
+.lg small{display:block;margin-top:16px;color:var(--mute)}
+
+/* shell */
+.app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+aside.side{background:var(--velvet);color:#E9DEE1;padding:24px 18px;display:flex;flex-direction:column;gap:26px;position:sticky;top:0;height:100vh}
+.brand{font:400 30px/1 var(--serif);color:#fff}
+.brand small{display:block;font:500 13px var(--sans);color:#BBA9AF;margin-top:6px}
+.menu{display:flex;flex-direction:column;gap:4px}
+.menu button{display:flex;justify-content:space-between;align-items:center;background:none;border:0;color:#E9DEE1;text-align:left;padding:12px 14px;border-radius:14px;font-weight:500;font-size:16px}
+.menu button[aria-current="page"]{background:#3A2160;color:#fff}
+.menu .cnt{min-width:24px;height:24px;border-radius:12px;background:var(--cherry);color:#fff;font-size:13px;display:grid;place-items:center;padding:0 7px}
+.side .foot{margin-top:auto;font-size:13px;color:#A8979D}
+.side .foot a{color:#E9DEE1}
+main{padding:22px clamp(14px,2.5vw,32px) 60px;min-width:0}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+.bar h1{font:400 clamp(34px,4vw,48px)/1 var(--serif);margin:0}
+.datenav{display:flex;align-items:center;gap:8px}
+.datenav button.ic{width:44px;height:44px;border-radius:50%;border:1.5px solid var(--pearl);background:#fff;font-size:20px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.st{background:#fff;border:1px solid var(--pearl);border-radius:18px;padding:14px 16px}
+.st b{display:block;font:400 32px/1 var(--serif);font-variant-numeric:tabular-nums}
+.st span{font-size:14px;color:var(--mute)}
+.st.alert{background:var(--warnbg);border-color:#F0D9AE}
+@media(max-width:900px){.app{grid-template-columns:1fr}aside.side{position:static;height:auto;flex-direction:row;align-items:center;flex-wrap:wrap;padding:14px 16px;gap:12px}.menu{flex-direction:row;flex-wrap:wrap}.menu button{padding:8px 12px}.side .foot{display:none}.stats{grid-template-columns:repeat(2,1fr)}}
+
+/* layout agenda + inbox */
+.grid{display:grid;grid-template-columns:1fr 330px;gap:16px;align-items:start}
+@media(max-width:1200px){.grid{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid var(--pearl);border-radius:22px}
+.cal{overflow:auto;max-height:calc(100vh - 230px);position:relative}
+.calhead{display:grid;grid-template-columns:62px repeat(var(--cols),minmax(140px,1fr));position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid var(--pearl);border-radius:22px 22px 0 0}
+.calhead div{padding:12px 10px;font-weight:600}
+.calhead div small{display:block;font-weight:400;color:var(--mute);font-size:13px}
+.calbody{display:grid;grid-template-columns:62px repeat(var(--cols),minmax(140px,1fr));position:relative}
+.times div{height:var(--hour);font-size:13px;color:var(--mute);padding:2px 8px 0 10px;font-variant-numeric:tabular-nums;border-top:1px solid var(--pearl)}
+.col{position:relative;border-left:1px solid var(--pearl);background:repeating-linear-gradient(#fff 0 calc(var(--hour) - 1px),var(--pearl) calc(var(--hour) - 1px) var(--hour))}
+.col .free{position:absolute;left:0;right:0;height:calc(var(--hour)/2);border:0;background:transparent}
+.col .free:hover{background:rgba(140,28,46,.05)}
+.ev{position:absolute;left:6px;right:6px;border-radius:12px;padding:7px 10px;text-align:left;border:0;overflow:hidden;font-size:14px;line-height:1.3;box-shadow:0 1px 0 rgba(35,26,29,.06);border-left:4px solid rgba(35,26,29,.35)}
+.ev b{display:block;font-weight:600}
+.ev.short{padding:3px 10px;white-space:nowrap;text-overflow:ellipsis}.ev.short b{display:inline;margin-right:6px}.ev.short .tag{display:none}
+.ev span{color:#4a3f44}
+.ev.done{opacity:.55}
+.ev.noshow{background:repeating-linear-gradient(45deg,#F6E3E6 0 8px,#fff 8px 16px)!important;border-left-color:var(--cherry)}
+.ev.blok{background:var(--c-blok);border-left-color:#bdb3b0;color:var(--mute)}
+.ev .tag{display:inline-block;margin-top:4px;font-size:12px;font-weight:600;background:rgba(255,255,255,.7);border-radius:999px;padding:1px 8px}
+.now{position:absolute;left:62px;right:0;height:2px;background:var(--cherry);z-index:4;pointer-events:none}
+.now::before{content:"";position:absolute;left:-6px;top:-5px;width:12px;height:12px;border-radius:50%;background:var(--cherry)}
+.inbox{padding:18px}
+.inbox h2{font:400 30px/1 var(--serif);margin:0 0 4px}
+.inbox>p{margin:0 0 14px;color:var(--mute);font-size:14px}
+.req{border:1.5px solid var(--pearl);border-radius:18px;padding:14px;margin-bottom:10px}
+.req.newest{border-color:var(--cherry);box-shadow:0 0 0 4px rgba(140,28,46,.08)}
+.req h3{margin:0 0 2px;font-size:17px}
+.req .meta{color:var(--mute);font-size:14px;margin-bottom:10px}
+.req .acts{display:flex;gap:6px;flex-wrap:wrap}
+.req select{font:inherit;border:1.5px solid var(--pearl);border-radius:999px;padding:6px 10px;background:#fff}
+.empty{color:var(--mute);font-size:15px;padding:18px;border:1.5px dashed var(--pearl);border-radius:18px;text-align:center}
+.pill{display:inline-block;font-size:12px;font-weight:600;border-radius:999px;padding:2px 9px;background:var(--milk)}
+.pill.web{background:#E4DAF7}.pill.walk{background:var(--okbg);color:var(--ok)}.pill.tel{background:var(--warnbg);color:var(--warn)}
+
+/* drawer */
+.scrim{position:fixed;inset:0;background:rgba(35,26,29,.35);z-index:60;opacity:0;pointer-events:none;transition:opacity .2s}
+.scrim.open{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(440px,100%);background:#fff;z-index:61;transform:translateX(100%);transition:transform .25s cubic-bezier(.2,.8,.2,1);padding:24px;overflow:auto;display:flex;flex-direction:column;gap:16px}
+.drawer.open{transform:none}
+.drawer h2{font:400 36px/1.05 var(--serif);margin:0}
+.drawer .x{position:absolute;right:16px;top:16px;width:40px;height:40px;border-radius:50%;border:1.5px solid var(--pearl);background:#fff;font-size:18px}
+.kv{display:grid;grid-template-columns:120px 1fr;gap:8px 12px;font-size:16px}
+.kv dt{color:var(--mute)}
+.kv dd{margin:0}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.fld{display:flex;flex-direction:column;gap:6px;font-weight:500}
+.fld input,.fld select,.fld textarea{font:400 16px var(--sans);border:1.5px solid var(--pearl);border-radius:12px;padding:11px 12px;background:var(--porcelain);color:var(--plum)}
+.note{background:var(--warnbg);border-radius:14px;padding:10px 12px;font-size:15px}
+
+/* customers + stats */
+table.t{width:100%;border-collapse:collapse;font-size:16px}
+table.t th{text-align:left;font-weight:600;color:var(--mute);font-size:14px;padding:12px 14px;border-bottom:1px solid var(--pearl)}
+table.t td{white-space:nowrap;padding:13px 14px;border-bottom:1px solid var(--pearl);vertical-align:top}
+table.t tr:hover td{background:var(--porcelain)}
+.search{font:400 16px var(--sans);border:1.5px solid var(--pearl);border-radius:999px;padding:11px 16px;min-width:260px;background:#fff}
+.charts{display:grid;grid-template-columns:1.3fr 1fr;gap:16px}
+.chartcard{padding:20px}
+.chartcard h2{font:400 28px/1 var(--serif);margin:0 0 4px}
+.chartcard p{margin:0 0 18px;color:var(--mute);font-size:14px}
+.bars{display:flex;align-items:flex-end;gap:10px;height:220px}
+.bars div{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:13px;color:var(--mute);font-variant-numeric:tabular-nums}
+.bars i{display:block;width:100%;border-radius:10px 10px 4px 4px;background:var(--c-nagels)}
+.bars div.today i{background:var(--plum)}
+.bars b{font-weight:600;color:var(--plum)}
+.hbar{display:grid;grid-template-columns:140px 1fr 50px;gap:10px;align-items:center;margin-bottom:12px;font-size:15px}
+.hbar i{display:block;height:12px;border-radius:6px;background:var(--c-handvoet)}
+.hbar span:last-child{text-align:right;font-variant-numeric:tabular-nums}
+@media(max-width:900px){.charts{grid-template-columns:1fr}}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(120px);background:var(--plum);color:#fff;padding:12px 18px;border-radius:999px;z-index:80;transition:transform .25s;font-weight:500}
+.toast.show{transform:translateX(-50%)}
+.demo{position:fixed;right:14px;bottom:14px;background:rgba(35,26,29,.88);color:#fff;font:500 13px var(--sans);padding:8px 13px;border-radius:999px;z-index:50}
+[hidden]{display:none!important}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+@media(max-width:560px){.datenav{display:flex;flex-wrap:wrap;gap:8px}.datenav #walkin,.datenav #block{flex:1 1 40%}.t td:last-child{white-space:normal;min-width:180px}}
+</style>
+</head>
+<body>
+
+<div id="login" role="dialog" aria-label="Aanmelden">
+ <div class="lg">
+  <h1>Buta Studio</h1>
+  <p>Salonbeheer. Geef je pincode in.</p>
+  <div class="pin" id="pin" aria-live="polite"><span></span><span></span><span></span><span></span></div>
+  <div class="keys" id="keys"></div>
+  <small>Demo-pincode: 1234</small>
+ </div>
+</div>
+
+<div class="app" id="app" hidden>
+ <aside class="side">
+  <div class="brand">Buta Studio<small>Salonbeheer</small></div>
+  <nav class="menu" aria-label="Menu">
+   <button data-v="agenda" aria-current="page">Agenda <span class="cnt" id="cntReq" hidden>0</span></button>
+   <button data-v="klanten">Klanten</button>
+   <button data-v="cijfers">Cijfers</button>
+  </nav>
+  <div class="foot">Ingelogd als Emiliya<br><a href="./">Naar de website</a><br><a href="#" id="logout">Afmelden</a></div>
+ </aside>
+
+ <main>
+  <!-- AGENDA -->
+  <section id="v-agenda">
+   <div class="bar">
+    <h1 id="dayTitle">Vandaag</h1>
+    <div class="datenav">
+     <button class="ic" id="prev" aria-label="Vorige dag">‹</button>
+     <button class="btn line sm" id="today">Vandaag</button>
+     <button class="ic" id="next" aria-label="Volgende dag">›</button>
+     <button class="btn" id="walkin">+ Walk-in</button>
+     <button class="btn line" id="block">Tijd blokkeren</button>
+    </div>
+   </div>
+   <div class="stats" id="stats"></div>
+   <div class="grid">
+    <div class="card cal" id="cal"></div>
+    <div class="card inbox">
+     <h2>Nieuwe aanvragen</h2>
+     <p>Boekingen via de website. Bevestig ze en stuur de klant een bericht.</p>
+     <div id="reqs"></div>
+    </div>
+   </div>
+  </section>
+
+  <!-- KLANTEN -->
+  <section id="v-klanten" hidden>
+   <div class="bar"><h1>Klanten</h1><input class="search" id="q" type="search" placeholder="Zoek op naam of gsm" aria-label="Zoek klant"></div>
+   <div class="card" style="overflow:auto"><table class="t"><thead><tr><th>Naam</th><th>Gsm</th><th>Bezoeken</th><th>Uitgegeven</th><th>Laatste bezoek</th><th>Notitie</th></tr></thead><tbody id="custRows"></tbody></table></div>
+  </section>
+
+  <!-- CIJFERS -->
+  <section id="v-cijfers" hidden>
+   <div class="bar"><h1>Cijfers</h1></div>
+   <div class="stats" id="wstats"></div>
+   <div class="charts">
+    <div class="card chartcard"><h2>Omzet deze week</h2><p>Afspraken met status gekomen of gepland, per dag</p><div class="bars" id="wbars"></div></div>
+    <div class="card chartcard"><h2>Populairste behandelingen</h2><p>Aantal afspraken deze week</p><div id="pop"></div></div>
+   </div>
+  </section>
+ </main>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="dTitle"><button class="x" id="dx" aria-label="Sluiten">✕</button><div id="dBody"></div></div>
+<div class="toast" id="toast" role="status"></div>
+<div class="demo">Concept · voorbeeldgegevens</div>
+
+<script>
+(function(){
+var $=function(s,r){return (r||document).querySelector(s)},$$=function(s,r){return [].slice.call((r||document).querySelectorAll(s))};
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function cleanSpaces(v){return String(v==null?'':v).replace(/[\u0000-\u001F\u007F]/g,' ').replace(/\s+/g,' ').trim()}
+function prettyName(v){v=cleanSpaces(v);if(v!==v.toLowerCase()&&v!==v.toUpperCase())return v;
+ return v.toLowerCase().split(' ').map(function(w,i){if(i>0&&PARTICLES.indexOf(w)>-1)return w;return w.split('-').map(function(x){return x.charAt(0).toUpperCase()+x.slice(1)}).join('-')}).join(' ')}
+function checkName(raw){var v=cleanSpaces(raw);
+ if(!v)return 'Vul je voornaam en achternaam in.';
+ if(/\d/.test(v))return 'Een naam bevat geen cijfers.';
+ if(/[@<>{}\[\]\\\/=_#$%^*|~`"+;:!?]/.test(v)||/https?|www\./i.test(v))return 'Gebruik alleen letters, een spatie, - of ’.';
+ if(!/^[\p{L}\p{M}' ’.\-]+$/u.test(v))return 'Gebruik alleen letters, een spatie, - of ’.';
+ var parts=v.split(' ').filter(function(p){return /\p{L}/u.test(p)});
+ if(parts.length<2)return 'Vul ook je achternaam in, zodat de salon je herkent.';
+ if(v.replace(/[^\p{L}]/gu,'').length<4)return 'Deze naam is te kort. Vul je volledige naam in.';
+ if(/(\p{L})\1\1/iu.test(v))return 'Controleer je naam even, er staat drie keer dezelfde letter na elkaar.';
+ if(v.length>60)return 'Deze naam is te lang (maximaal 60 tekens).';
+ return ''}
+function fakeDigits(d){var t=d.slice(-8);return /^(\d)\1{6}$/.test(d.slice(-7))||t==='12345678'||t==='87654321'}
+/* returns {ok,e164,pretty} or {err} */
+function parsePhone(raw){var s=String(raw==null?'':raw).trim();
+ if(!s)return {err:'Vul je gsm-nummer in.'};
+ if(/[^\d+\s().\/\-]/.test(s))return {err:'Een gsm-nummer bevat alleen cijfers.'};
+ if(s.lastIndexOf('+')>0)return {err:'Het + teken hoort alleen vooraan, voor de landcode.'};
+ var d=s.replace(/[^\d+]/g,'');
+ if(d.slice(0,2)==='00')d='+'+d.slice(2);
+ if(d.slice(0,4)==='+320')d='+32'+d.slice(4);
+ if(d.charAt(0)==='+'&&d.slice(0,3)!=='+32'){var n=d.slice(1);
+  if(n.slice(0,2)==='31'&&!/^316\d{8}$/.test(n))return {err:'Een Nederlands gsm-nummer is +31 6 gevolgd door 8 cijfers.'};
+  if(!/^[1-9]\d{8,13}$/.test(n))return {err:'Dit buitenlandse nummer klopt niet. Begin met + en de landcode, bijvoorbeeld +31 6 12 34 56 78.'};
+  if(fakeDigits(n))return {err:'Dit lijkt geen echt nummer. Controleer het even.'};
+  return {ok:true,e164:'+'+n,pretty:'+'+n.slice(0,2)+' '+n.slice(2).replace(/(\d{3})(?=\d)/g,'$1 ')}}
+ if(d.slice(0,3)==='+32')d='0'+d.slice(3);
+ if(/^4\d{8}$/.test(d))d='0'+d;
+ if(/^06\d{8}$/.test(d))return {err:'Is dit een Nederlands nummer? Zet er dan +31 voor, bijvoorbeeld +31 6 12 34 56 78.'};
+ if(/^0[1-9]\d{7}$/.test(d)&&d.charAt(1)!=='4')return {err:'Dit is een vast nummer. Geef je gsm-nummer, want de bevestiging komt via WhatsApp of sms.'};
+ if(d.length<10)return {err:'Dit nummer is te kort. Een Belgisch gsm-nummer heeft 10 cijfers, bijvoorbeeld 0470 12 34 56.'};
+ if(d.length>10)return {err:'Dit nummer is te lang. Een Belgisch gsm-nummer heeft 10 cijfers, bijvoorbeeld 0470 12 34 56.'};
+ if(!/^04[5-9]\d{7}$/.test(d))return {err:'Een Belgisch gsm-nummer begint met 045 tot 049, bijvoorbeeld 0470 12 34 56.'};
+ if(fakeDigits(d))return {err:'Dit lijkt geen echt nummer. Controleer het even.'};
+ return {ok:true,e164:'+32'+d.slice(1),pretty:d.slice(0,4)+' '+d.slice(4,6)+' '+d.slice(6,8)+' '+d.slice(8,10)}}
+function toast(t){var e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove('show')},2400)}
+
+/* ---------- data ---------- */
+var STAFF=[
+ {id:'emiliya',name:'Emiliya',cats:['nagels','handvoet']},{id:'nataliia',name:'Nataliia',cats:['nagels','handvoet']},{id:'deniz',name:'Deniz',cats:['nagels','handvoet']},
+ {id:'tatiana',name:'Tatiana',cats:['handvoet']},{id:'viktoriia',name:'Viktoriia',cats:['ogen','waxen']},{id:'anastasiia',name:'Anastasiia',cats:['massage']}];
+var TABLES=STAFF.map(function(p){return p.name});
+var HOURS=[[540,1170],[600,1140],[600,1140],[600,1140],[600,1140],[600,1140],null]; // 0 = zondag, null = gesloten
+var OPEN=600,CLOSE=1140;
+function setHours(d){var h=HOURS[d.getDay()]||[600,1140];OPEN=h[0];CLOSE=h[1]}
+var SERV=[
+ ['nagels','BIAB nagelversteviging',[['Naturel',60,75],['Met kleur',65,100]]],
+ ['nagels','Gelnagels, nieuwe set',[['Naturel',60,90],['Kleur',65,90],['Babyboom',70,90],['French',70,90]]],
+ ['nagels','Gelnagels opvullen',[['Naturel',60,90],['Kleur',65,90],['Babyboom',70,90],['French',70,90]]],
+ ['nagels','Gelnagels met verlenging',[['Naturel',80,90],['Kleur',85,90],['Babyboom',90,90],['French',90,90]]],
+ ['nagels','Gelnagels verwijderen',[['',20,15]]],
+ ['handvoet','Russische manicure',[['',25,30]]],['handvoet','Esthetische pedicure',[['',50,50]]],['handvoet','Esthetische pedicure + gellak',[['',65,100]]],['handvoet','Gellak op de teennagels',[['',50,60]]],['handvoet','Gellak verwijderen',[['',15,15]]],
+ ['ogen','Wimpers verven',[['',15,20]]],['ogen','Wimperlifting + verven',[['',60,60]]],['ogen','Koreaanse lash lift',[['',50,60]]],['ogen','Wimperlift, wenkbrauwcorrectie en verven',[['',70,105]]],
+ ['ogen','Wenkbrauwcorrectie',[['Correctie',15,20],['Met verven',30,35]]],['ogen','Brow lamination',[['Brow lamination',45,60],['Met correctie',50,60],['Met correctie en verven',55,60]]],
+ ['ogen','Wimperlift + brow lamination',[['Basis',75,120],['Met correctie en verven',85,120]]],['ogen','Wimperlifting + pressotherapie',[['',90,60]]],
+ ['massage','Ontspanningsmassage',[['60 min, zonder hoofd',80,60],['90 min, met hoofd',110,90]]],['massage','Lymfedrainage',[['60 min, zonder gezicht',80,60],['90 min, met gezicht',110,90]]],
+ ['massage','Pressotherapie',[['',40,30]]],['massage','Gezichtsmassage',[['45 min',65,45],['60 min',80,60]]],['massage','Rugmassage',[['45 min',65,45],['60 min',80,60]]],['massage','Gezichts- of hoofdmassage + pressotherapie',[['',75,30]]],
+ ['waxen','Waxen gelaat',[['Bovenlip',8,15],['Kin',8,10],['Neus',8,10],['Bovenlip en kin',15,20],['Hele gelaat',20,30]]]];
+var SVC={}; // name: [category, minutes, price]
+SERV.forEach(function(s){s[2].forEach(function(o){SVC[s[1]+(o[0]?', '+o[0].toLowerCase():'')]=[s[0],o[2],o[1]]})});
+function key(d){return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)}
+function hm(m){return ('0'+Math.floor(m/60)).slice(-2)+':'+('0'+m%60).slice(-2)}
+function toMin(s){var p=String(s).split(':');return +p[0]*60+ +p[1]}
+var today=new Date();today.setHours(0,0,0,0);
+var CUST=[
+ {id:'c1',name:'Marianne D.',tel:'0470 11 22 33',note:'Opvullen om de 3 weken, nude tinten'},
+ {id:'c2',name:'Imane B.',tel:'0485 23 45 67',note:'Altijd bij Emiliya'},
+ {id:'c3',name:'Sofie V.',tel:'0491 34 56 78',note:''},
+ {id:'c4',name:'Roxana P.',tel:'0472 45 67 89',note:'Spreekt Engels'},
+ {id:'c5',name:'Lotte J.',tel:'0468 56 78 90',note:''},
+ {id:'c6',name:'Hanne C.',tel:'0476 67 89 01',note:'1x no-show in september'},
+ {id:'c7',name:'Daniella R.',tel:'0499 78 90 12',note:'Gevoelige huid'},
+ {id:'c8',name:'Yasmina A.',tel:'0489 89 01 23',note:'Brow lamination om de 6 weken'}];
+var seq=100;function id(){return 'b'+(++seq)}
+function sidx(sid){for(var i=0;i<STAFF.length;i++)if(STAFF[i].id===sid)return i;return 0}
+function open_(off){return !!HOURS[new Date(today.getTime()+off*86400000).getDay()]}
+function mk(dayOff,start,table,svc,cust,status,src){var d=new Date(today);d.setDate(d.getDate()+dayOff);var s=SVC[svc]||['blok',30,0];return {id:id(),date:key(d),start:toMin(start),table:table,svc:svc,min:s[1],price:s[2],cust:cust,status:status||'gepland',src:src||'web'}}
+var BOOK=[];
+(function seedDemo(){
+ var plan=[[0,'10:00',0,'Gelnagels opvullen, babyboom','c1','gekomen','web'],[0,'10:30',3,'Esthetische pedicure','c2','gekomen','tel'],[0,'11:30',1,'BIAB nagelversteviging, met kleur','c3','gepland','web'],[0,'12:00',4,'Brow lamination, met correctie en verven','c8','gepland','web'],
+ [0,'13:30',2,'Russische manicure','c5','gepland','walk'],[0,'14:00',5,'Lymfedrainage, 60 min, zonder gezicht','c7','gepland','tel'],[0,'14:30',0,'Gelnagels met verlenging, french','c4','gepland','web'],[0,'16:30',1,'Gelnagels opvullen, kleur','c6','gepland','web'],[0,'16:00',3,'Esthetische pedicure + gellak','c1','gepland','web'],[0,'11:00',5,'Rugmassage, 60 min','c4','gepland','web'],
+ [1,'10:30',0,'Gelnagels, nieuwe set, kleur','c3','gepland','web'],[1,'13:00',4,'Wimperlifting + verven','c8','gepland','web'],[1,'15:30',2,'Gelnagels opvullen, naturel','c5','gepland','tel'],[2,'11:00',3,'Esthetische pedicure','c2','gepland','web'],[2,'14:00',0,'Gelnagels opvullen, babyboom','c7','gepland','web']];
+ plan.forEach(function(p){if(open_(p[0]))BOOK.push(mk(p[0],p[1],p[2],p[3],p[4],p[5],p[6]))});
+ for(var d=-6;d<0;d++){if(!open_(d))continue;[['10:00',0,'Gelnagels opvullen, kleur','c3'],['11:30',3,'Esthetische pedicure','c5'],['13:00',1,'BIAB nagelversteviging, naturel','c4'],['14:30',4,'Koreaanse lash lift','c8'],['16:00',5,'Ontspanningsmassage, 60 min, zonder hoofd','c7']].slice(0,3+((d+9)%3)).forEach(function(p){BOOK.push(mk(d,p[0],p[1],p[2],p[3],'gekomen','web'))})}
+ if(open_(-3))BOOK.push(mk(-3,'17:00',2,'Gelnagels opvullen, french','c6','noshow','web'));
+ if(open_(0)){BOOK.push(mk(0,'13:00',0,'','','blok','intern'));var b=BOOK[BOOK.length-1];b.svc='Pauze';b.min=30;b.price=0;b.status='blok'}
+})();
+var REQ=[
+ {id:'r1',name:'Fatima E.',tel:'0477 12 98 76',svc:'Gelnagels, nieuwe set, french',date:key(today),start:toMin('17:30'),price:70,staff:'emiliya',chosen:true,extras:'',note:'Graag korte amandelvorm',at:Date.now()-1000*60*22},
+ {id:'r2',name:'Laura S.',tel:'0486 54 32 10',svc:'Esthetische pedicure',date:key(new Date(today.getTime()+86400000)),start:toMin('11:00'),price:50,staff:'tatiana',extras:'',note:'',at:Date.now()-1000*60*95}];
+/* bookings made on the concept website (same browser) */
+function pullWeb(){try{var arr=JSON.parse(localStorage.getItem('buta_bookings')||'[]');var known=REQ.map(function(r){return r.id}).concat(BOOK.map(function(b){return b.wid}).filter(Boolean));var added=0;arr.forEach(function(w){if(!w||known.indexOf(w.id)>-1||w.handled)return;if(checkName(w.name)||!parsePhone(w.phone).ok||!/^\d{4}-\d{2}-\d{2}$/.test(w.date)||isNaN(+w.start))return;REQ.unshift({id:w.id,name:w.name,tel:w.phone,svc:w.svc,date:w.date,start:+w.start,price:w.total,staff:w.staff,chosen:w.chosen,extras:'',note:w.note||'',at:w.at,fresh:true});added++});return added}catch(e){return 0}}
+function markHandled(rid){try{var arr=JSON.parse(localStorage.getItem('buta_bookings')||'[]');arr.forEach(function(w){if(w.id===rid)w.handled=true});localStorage.setItem('buta_bookings',JSON.stringify(arr))}catch(e){}}
+pullWeb();
+addEventListener('storage',function(e){if(e.key==='buta_bookings'&&pullWeb()){render();toast('Nieuwe online boeking binnengekomen')}});
+setInterval(function(){if(pullWeb()){render();toast('Nieuwe online boeking binnengekomen')}},4000);
+
+function cust(id){return CUST.find(function(c){return c.id===id})||{name:'Onbekend',tel:'',note:''}}
+function cat(svc){return (SVC[svc]||['blok'])[0]}
+
+/* ---------- login ---------- */
+var pin='';
+$('#keys').innerHTML=[1,2,3,4,5,6,7,8,9,'',0,'⌫'].map(function(k){return k===''?'<span></span>':'<button type="button" data-k="'+k+'" aria-label="'+(k==='⌫'?'Wis':k)+'">'+k+'</button>'}).join('');
+$('#keys').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;var k=b.dataset.k;if(k==='⌫')pin=pin.slice(0,-1);else if(pin.length<4)pin+=k;$$('#pin span').forEach(function(s,i){s.classList.toggle('on',i<pin.length)});if(pin.length===4){if(pin==='1234'){$('#login').hidden=true;$('#app').hidden=false;render()}else{pin='';setTimeout(function(){$$('#pin span').forEach(function(s){s.classList.remove('on')});$('.lg p').textContent='Verkeerde pincode. Probeer opnieuw.'},150)}}});
+$('#logout').addEventListener('click',function(e){e.preventDefault();pin='';$$('#pin span').forEach(function(s){s.classList.remove('on')});$('#app').hidden=true;$('#login').hidden=false});
+
+/* ---------- views ---------- */
+var view='agenda',day=new Date(today);
+$$('.menu button').forEach(function(b){b.addEventListener('click',function(){view=b.dataset.v;$$('.menu button').forEach(function(x){x.setAttribute('aria-current',x===b?'page':'false')});['agenda','klanten','cijfers'].forEach(function(v){$('#v-'+v).hidden=v!==view});render()})});
+$('#prev').onclick=function(){day.setDate(day.getDate()-1);render()};
+$('#next').onclick=function(){day.setDate(day.getDate()+1);render()};
+$('#today').onclick=function(){day=new Date(today);render()};
+
+var DN=['zondag','maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag'],MN=['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december'];
+function dayLabel(d){var t=+d===+today?'Vandaag, ':(+d===today.getTime()+86400000?'Morgen, ':'');return t+DN[d.getDay()]+' '+d.getDate()+' '+MN[d.getMonth()]}
+function dayOf(k){var p=k.split('-');return new Date(+p[0],+p[1]-1,+p[2])}
+
+function render(){
+ $('#cntReq').hidden=!REQ.length;$('#cntReq').textContent=REQ.length;
+ if(view==='agenda')renderAgenda();if(view==='klanten')renderCust();if(view==='cijfers')renderStats();
+}
+function dayBookings(k){return BOOK.filter(function(b){return b.date===k})}
+function renderAgenda(){
+ setHours(day);var k=key(day),list=dayBookings(k);
+ $('#dayTitle').textContent=dayLabel(day);
+ var real=list.filter(function(b){return b.status!=='blok'}),act=real.filter(function(b){return b.status!=='geannuleerd'&&b.status!=='noshow'});
+ var omzet=act.reduce(function(a,b){return a+b.price},0),walk=real.filter(function(b){return b.src==='walk'}).length;
+ var cap=TABLES.length*(CLOSE-OPEN),used=act.reduce(function(a,b){return a+b.min},0);
+ $('#stats').innerHTML='<div class="st"><b>'+act.length+'</b><span>afspraken</span></div><div class="st"><b>€'+omzet+'</b><span>verwachte omzet</span></div><div class="st"><b>'+Math.round(used/cap*100)+'%</b><span>bezetting van het team</span></div><div class="st'+(REQ.length?' alert':'')+'"><b>'+REQ.length+'</b><span>aanvragen wachten op jou</span></div>';
+ var h='<div class="calhead" style="--cols:'+TABLES.length+'"><div></div>'+TABLES.map(function(t,i){var n=act.filter(function(b){return b.table===i}).length;return '<div>'+t+'<small>'+n+' afspraken</small></div>'}).join('')+'</div>';
+ h+='<div class="calbody" style="--cols:'+TABLES.length+'"><div class="times">';for(var m=OPEN;m<CLOSE;m+=60)h+='<div>'+hm(m)+'</div>';h+='</div>';
+ TABLES.forEach(function(t,i){h+='<div class="col" data-t="'+i+'" style="height:calc(var(--hour) * '+((CLOSE-OPEN)/60)+')">';for(var m2=OPEN;m2<CLOSE;m2+=30)h+='<button class="free" aria-label="'+t+' '+hm(m2)+' vrij, nieuwe afspraak" data-new="'+i+':'+m2+'" style="top:calc(var(--hour) * '+((m2-OPEN)/60)+')"></button>';
+  list.filter(function(b){return b.table===i}).forEach(function(b){var c=cust(b.cust),top=(b.start-OPEN)/60,hgt=b.min/60;var cls='ev'+(b.status==='gekomen'?' done':'')+(b.status==='noshow'?' noshow':'')+(b.status==='blok'?' blok':'')+(b.min<=30?' short':'');if(b.status==='geannuleerd')return;
+   h+='<button class="'+cls+'" data-b="'+b.id+'" style="top:calc(var(--hour) * '+top+' + 2px);height:calc(var(--hour) * '+hgt+' - 4px);background:var(--c-'+cat(b.svc)+')"><b>'+(b.status==='blok'?esc(b.svc):esc(c.name))+'</b>'+(b.status==='blok'?'':'<span>'+hm(b.start)+' · '+esc(b.svc)+'</span>')+(b.status==='gekomen'?'<br><span class="tag">Gekomen</span>':b.status==='noshow'?'<br><span class="tag">No-show</span>':b.src==='walk'?'<br><span class="tag">Walk-in</span>':'')+'</button>'});
+  h+='</div>'});
+ h+='</div>';
+ if(+day===+today){var n=new Date(),nm=n.getHours()*60+n.getMinutes();if(nm>=OPEN&&nm<=CLOSE)h+='<div class="now" style="top:calc(46px + var(--hour) * '+((nm-OPEN)/60)+')"></div>'}
+ if(!HOURS[day.getDay()])h='<div class="empty" style="margin:18px">De salon is gesloten op '+DN[day.getDay()]+'. Kies een andere dag.</div>';
+ $('#cal').innerHTML=h;
+ // inbox
+ $('#reqs').innerHTML=REQ.length?REQ.sort(function(a,b){return b.at-a.at}).map(function(r,i){var ago=Math.max(1,Math.round((Date.now()-r.at)/60000));return '<div class="req'+(r.fresh?' newest':'')+'"><span class="pill web">Website · '+(ago<60?ago+' min':Math.round(ago/60)+' u')+' geleden</span><h3 style="margin-top:8px">'+esc(r.name)+'</h3><div class="meta">'+esc(r.svc)+(r.extras?' + '+esc(r.extras):'')+'<br>'+dayLabel(dayOf(r.date))+' om '+hm(r.start)+' · €'+r.price+(r.chosen&&r.staff?'<br>Wil graag bij '+esc(STAFF[sidx(r.staff)].name):'')+(r.note?'<br>“'+esc(r.note)+'”':'')+'</div><div class="acts"><select aria-label="Medewerker" data-tsel="'+r.id+'">'+TABLES.map(function(t,j){return '<option value="'+j+'"'+(j===suggestTable(r)?' selected':'')+'>'+t+'</option>'}).join('')+'</select><button class="btn ok sm" data-ok="'+r.id+'">Bevestigen</button><button class="btn line sm" data-other="'+r.id+'">Ander uur</button><button class="btn bad sm" data-no="'+r.id+'">Weigeren</button></div></div>'}).join(''):'<div class="empty">Geen nieuwe aanvragen. Alles is bevestigd.</div>';
+}
+function overlaps(date,table,start,min,ignore){return BOOK.some(function(b){return b.id!==ignore&&b.date===date&&b.table===table&&b.status!=='geannuleerd'&&start<b.start+b.min&&b.start<start+min})}
+function suggestTable(r){var min=(SVC[r.svc]||[0,60])[1],c=(SVC[r.svc]||['nagels'])[0];if(r.staff&&!overlaps(r.date,sidx(r.staff),r.start,min))return sidx(r.staff);for(var i=0;i<STAFF.length;i++)if(STAFF[i].cats.indexOf(c)>-1&&!overlaps(r.date,i,r.start,min))return i;return r.staff?sidx(r.staff):0}
+function waLink(tel,text){var n=String(tel||'').replace(/[^0-9]/g,'');if(n.charAt(0)==='0')n='32'+n.slice(1);return 'https://wa.me/'+n+'?text='+encodeURIComponent(text)}
+
+/* inbox actions */
+$('#reqs').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;
+ var rid=b.dataset.ok||b.dataset.no||b.dataset.other;var r=REQ.find(function(x){return x.id===rid});if(!r)return;
+ if(b.dataset.ok){var t=+$('[data-tsel="'+rid+'"]').value,min=(SVC[r.svc]||[0,60])[1];if(overlaps(r.date,t,r.start,min)){toast(TABLES[t]+' is dan al bezet. Kies iemand anders.');return}
+  var c=CUST.find(function(x){return x.tel.replace(/\D/g,'')===String(r.tel).replace(/\D/g,'')});if(!c){c={id:'c'+(CUST.length+1),name:r.name,tel:r.tel,note:r.note||''};CUST.push(c)}
+  BOOK.push({id:id(),wid:r.id,date:r.date,start:r.start,table:t,svc:r.svc,min:min,price:r.price,cust:c.id,status:'gepland',src:'web'});
+  REQ=REQ.filter(function(x){return x!==r});markHandled(rid);day=dayOf(r.date);render();
+  openDrawer('<h2>Bevestigd</h2><p>'+esc(r.name)+' staat in de agenda op '+dayLabel(dayOf(r.date)).replace(/^(Vandaag|Morgen)/,function(x){return x.toLowerCase()})+' om '+hm(r.start)+' bij '+TABLES[t]+'.</p><p>Laat het de klant weten:</p><div class="row"><a class="btn" target="_blank" rel="noopener" href="'+waLink(r.tel,'Hallo '+r.name.split(' ')[0]+', je afspraak bij Buta Studio voor '+r.svc.toLowerCase()+' op '+dayLabel(dayOf(r.date)).replace(/^(Vandaag|Morgen), /,'')+' om '+hm(r.start)+' is bevestigd. Tot dan! Buta Studio, Ter Heydelaan 181, Deurne.')+'">Stuur bevestiging via WhatsApp</a></div><p style="color:var(--mute);font-size:14px">In de live versie gaat deze bevestiging automatisch, met een herinnering de dag ervoor.</p>');return}
+ if(b.dataset.no){REQ=REQ.filter(function(x){return x!==r});markHandled(rid);render();openDrawer('<h2>Geweigerd</h2><p>Laat '+esc(r.name)+' weten dat het niet lukt:</p><a class="btn" target="_blank" rel="noopener" href="'+waLink(r.tel,'Hallo '+r.name.split(' ')[0]+', helaas lukt '+hm(r.start)+' niet bij Buta Studio. Je bent altijd welkom als walk-in of kies een ander moment op onze website. Sorry!')+'">Stuur bericht via WhatsApp</a>');return}
+ if(b.dataset.other){var min2=(SVC[r.svc]||[0,60])[1],opts=[];for(var m=OPEN;m+min2<=CLOSE&&opts.length<4;m+=30){for(var i=0;i<TABLES.length;i++){if(!overlaps(r.date,i,m,min2)&&Math.abs(m-r.start)<=180){opts.push(m);break}}}
+  openDrawer('<h2>Ander uur voorstellen</h2><p>Vrije momenten op '+dayLabel(dayOf(r.date))+' voor '+esc(r.svc.toLowerCase())+':</p><div class="row">'+opts.map(function(m){return '<a class="btn line" target="_blank" rel="noopener" href="'+waLink(r.tel,'Hallo '+r.name.split(' ')[0]+', '+hm(r.start)+' is helaas al volzet bij Buta Studio. Past '+hm(m)+' op dezelfde dag? Laat het ons weten!')+'">'+hm(m)+'</a>'}).join('')+'</div><p style="color:var(--mute);font-size:14px">Tik op een uur om het voorstel via WhatsApp te sturen.</p>')}
+});
+
+/* agenda clicks */
+$('#cal').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;
+ if(b.dataset.b)return openBooking(b.dataset.b);
+ if(b.dataset.new){var p=b.dataset.new.split(':');return newForm(+p[0],+p[1],'tel')}
+});
+function openBooking(bid){var b=BOOK.find(function(x){return x.id===bid});if(!b)return;
+ if(b.status==='blok'){openDrawer('<h2>'+esc(b.svc)+'</h2><p>'+TABLES[b.table]+', '+hm(b.start)+' tot '+hm(b.start+b.min)+'</p><button class="btn bad" data-del="'+b.id+'">Blokkering verwijderen</button>');return}
+ var c=cust(b.cust),hist=BOOK.filter(function(x){return x.cust===b.cust&&x.status==='gekomen'}).length,ns=BOOK.filter(function(x){return x.cust===b.cust&&x.status==='noshow'}).length;
+ openDrawer('<span class="pill '+(b.src==='walk'?'walk':b.src==='tel'?'tel':'web')+'">'+(b.src==='walk'?'Walk-in':b.src==='tel'?'Telefonisch':'Via website')+'</span><h2>'+esc(c.name)+'</h2>'+
+ (c.note?'<div class="note">'+esc(c.note)+'</div>':'')+
+ '<dl class="kv"><dt>Behandeling</dt><dd>'+esc(b.svc)+'</dd><dt>Wanneer</dt><dd>'+dayLabel(dayOf(b.date))+'<br>'+hm(b.start)+' tot '+hm(b.start+b.min)+'</dd><dt>Bij</dt><dd>'+TABLES[b.table]+'</dd><dt>Prijs</dt><dd>€'+b.price+'</dd><dt>Gsm</dt><dd>'+esc(c.tel)+'</dd><dt>Geschiedenis</dt><dd>'+hist+' keer geweest'+(ns?', '+ns+' no-show':'')+'</dd></dl>'+
+ '<div class="row"><a class="btn line" href="tel:'+esc(c.tel.replace(/\s/g,''))+'">Bellen</a><a class="btn line" target="_blank" rel="noopener" href="'+waLink(c.tel,'Hallo '+c.name.split(' ')[0]+', ')+'">WhatsApp</a></div>'+
+ '<p style="margin:6px 0 0;font-weight:600">Status</p><div class="row"><button class="btn ok" data-st="gekomen" data-id="'+b.id+'">Gekomen</button><button class="btn line" data-st="noshow" data-id="'+b.id+'">No-show</button><button class="btn bad" data-st="geannuleerd" data-id="'+b.id+'">Annuleren</button></div>'+
+ '<p style="margin:6px 0 0;font-weight:600">Verplaatsen</p><div class="row"><select class="fld" id="mvT" style="border:1.5px solid var(--pearl);border-radius:12px;padding:10px">'+TABLES.map(function(t,i){return '<option value="'+i+'"'+(i===b.table?' selected':'')+'>'+t+'</option>'}).join('')+'</select><input type="time" id="mvH" value="'+hm(b.start)+'" step="900" style="border:1.5px solid var(--pearl);border-radius:12px;padding:10px;font:inherit"><button class="btn" data-mv="'+b.id+'">Verplaats</button></div>')}
+$('#drawer').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;
+ if(b.dataset.st){var x=BOOK.find(function(y){return y.id===b.dataset.id});x.status=b.dataset.st;closeDrawer();render();toast({gekomen:'Gemarkeerd als gekomen',noshow:'Genoteerd als no-show',geannuleerd:'Afspraak geannuleerd'}[x.status]);return}
+ if(b.dataset.mv){var y=BOOK.find(function(z){return z.id===b.dataset.mv}),t=+$('#mvT').value,s=toMin($('#mvH').value);if(s<OPEN||s+y.min>CLOSE){toast('Dat valt buiten de openingsuren.');return}if(overlaps(y.date,t,s,y.min,y.id)){toast(TABLES[t]+' is dan al bezet.');return}y.table=t;y.start=s;closeDrawer();render();toast('Afspraak verplaatst naar '+hm(s));return}
+ if(b.dataset.del){BOOK=BOOK.filter(function(z){return z.id!==b.dataset.del});closeDrawer();render();toast('Blokkering verwijderd');return}
+ if(b.id==='saveNew'){var t2=+$('#nT').value,s2=toMin($('#nH').value),svc=$('#nS').value,min=SVC[svc][1],nm=cleanSpaces($('#nN').value),tel=$('#nP').value.trim();if(!$('#nH').value||isNaN(s2)){toast('Kies een uur.');return}if(nm&&(/\d/.test(nm)||!/^[\p{L}\p{M}' \u2019.\-]+$/u.test(nm))){toast('Een naam bevat alleen letters.');return}if(b.dataset.src==='tel'&&!nm){toast('Vul de naam van de klant in.');return}if(b.dataset.src==='tel'&&!tel){toast('Vul het gsm-nummer van de klant in.');return}if(tel){var pp=parsePhone(tel);if(!pp.ok){toast(pp.err);return}tel=pp.pretty}nm=nm?prettyName(nm):'Walk-in klant';
+  if(s2<OPEN||s2+min>CLOSE){toast('Dat valt buiten de openingsuren.');return}if(overlaps(key(day),t2,s2,min)){toast(TABLES[t2]+' is dan al bezet.');return}
+  var c=CUST.find(function(x){return tel&&x.tel.replace(/\D/g,'')===tel.replace(/\D/g,'')});if(!c){c={id:'c'+(CUST.length+1),name:nm,tel:tel,note:''};CUST.push(c)}
+  BOOK.push({id:id(),date:key(day),start:s2,table:t2,svc:svc,min:min,price:SVC[svc][2],cust:c.id,status:b.dataset.walk?'gekomen':'gepland',src:b.dataset.src});closeDrawer();render();toast('Afspraak toegevoegd');return}
+ if(b.id==='saveBlock'){var t3=+$('#bT').value,s3=toMin($('#bF').value),e3=toMin($('#bU').value);if(e3<=s3){toast('Het einduur moet na het beginuur liggen.');return}BOOK.push({id:id(),date:key(day),start:s3,table:t3,svc:$('#bR').value||'Geblokkeerd',min:e3-s3,price:0,cust:'',status:'blok',src:'intern'});closeDrawer();render();toast('Tijd geblokkeerd');return}
+});
+function newForm(table,start,src){
+ openDrawer('<h2>'+(src==='walk'?'Walk-in':'Nieuwe afspraak')+'</h2><div class="fld">Behandeling<select id="nS">'+Object.keys(SVC).map(function(s){return '<option>'+s+'</option>'}).join('')+'</select></div><div class="row"><label class="fld" style="flex:1">Medewerker<select id="nT">'+TABLES.map(function(t,i){return '<option value="'+i+'"'+(i===table?' selected':'')+'>'+t+'</option>'}).join('')+'</select></label><label class="fld" style="flex:1">Uur<input type="time" id="nH" step="900" value="'+hm(start)+'"></label></div><label class="fld">Naam klant<input id="nN" placeholder="'+(src==='walk'?'Optioneel':'Voornaam')+'"></label><label class="fld">Gsm<input id="nP" type="tel" placeholder="Optioneel"></label><button class="btn" id="saveNew" data-src="'+src+'"'+(src==='walk'?' data-walk="1"':'')+'>'+(src==='walk'?'Walk-in toevoegen':'Afspraak toevoegen')+'</button>')}
+$('#walkin').onclick=function(){var n=new Date(),m=Math.ceil((n.getHours()*60+n.getMinutes())/15)*15;day=new Date(today);if(m<OPEN)m=OPEN;if(m>CLOSE-30)m=CLOSE-30;var t=0;for(var i=0;i<TABLES.length;i++)if(!overlaps(key(day),i,m,60)){t=i;break}render();newForm(t,m,'walk')};
+$('#block').onclick=function(){openDrawer('<h2>Tijd blokkeren</h2><p style="margin:0;color:var(--mute)">Voor een pauze, een opleiding of als iemand ziek is. Online kan dan niemand bij die persoon boeken.</p><label class="fld">Medewerker<select id="bT">'+TABLES.map(function(t,i){return '<option value="'+i+'">'+t+'</option>'}).join('')+'</select></label><div class="row"><label class="fld" style="flex:1">Van<input type="time" id="bF" value="13:00" step="900"></label><label class="fld" style="flex:1">Tot<input type="time" id="bU" value="13:30" step="900"></label></div><label class="fld">Reden<input id="bR" placeholder="Bijvoorbeeld pauze"></label><button class="btn" id="saveBlock">Blokkeren</button>')};
+
+function openDrawer(h){$('#dBody').innerHTML=h;$('#drawer').classList.add('open');$('#scrim').classList.add('open');setTimeout(function(){var f=$('#drawer button:not(.x),#drawer select,#drawer input');f&&f.focus()},60)}
+function closeDrawer(){$('#drawer').classList.remove('open');$('#scrim').classList.remove('open')}
+$('#dx').onclick=closeDrawer;$('#scrim').onclick=closeDrawer;addEventListener('keydown',function(e){if(e.key==='Escape')closeDrawer()});
+
+/* customers */
+function renderCust(){var q=($('#q').value||'').toLowerCase();
+ $('#custRows').innerHTML=CUST.filter(function(c){return !q||c.name.toLowerCase().indexOf(q)>-1||c.tel.replace(/\s/g,'').indexOf(q.replace(/\s/g,''))>-1}).map(function(c){var bs=BOOK.filter(function(b){return b.cust===c.id&&b.status==='gekomen'});var last=bs.map(function(b){return b.date}).sort().pop();var ns=BOOK.filter(function(b){return b.cust===c.id&&b.status==='noshow'}).length;
+  return '<tr><td><strong>'+esc(c.name)+'</strong>'+(ns?' <span class="pill" style="background:#F6E3E6;color:var(--cherry)">'+ns+' no-show</span>':'')+'</td><td>'+esc(c.tel)+'</td><td>'+bs.length+'</td><td>€'+bs.reduce(function(a,b){return a+b.price},0)+'</td><td>'+(last?dayOf(last).toLocaleDateString('nl-BE',{day:'numeric',month:'short'}):'Nog niet')+'</td><td style="color:var(--mute)">'+esc(c.note)+'</td></tr>'}).join('')}
+$('#q').addEventListener('input',renderCust);
+
+/* stats */
+function renderStats(){var start=new Date(today);start.setDate(start.getDate()-((start.getDay()+6)%7));var days=[];for(var i=0;i<7;i++){var d=new Date(start);d.setDate(start.getDate()+i);days.push(d)}
+ var wk=BOOK.filter(function(b){return b.status!=='blok'&&days.some(function(d){return key(d)===b.date})});var ok=wk.filter(function(b){return b.status==='gekomen'||b.status==='gepland'});
+ var rev=ok.reduce(function(a,b){return a+b.price},0),ns=wk.filter(function(b){return b.status==='noshow'}).length;var web=wk.filter(function(b){return b.src==='web'}).length;
+ $('#wstats').innerHTML='<div class="st"><b>€'+rev+'</b><span>omzet deze week</span></div><div class="st"><b>'+ok.length+'</b><span>afspraken deze week</span></div><div class="st"><b>'+(wk.length?Math.round(web/wk.length*100):0)+'%</b><span>geboekt via de website</span></div><div class="st"><b>'+ns+'</b><span>no-shows deze week</span></div>';
+ var per=days.map(function(d){return ok.filter(function(b){return b.date===key(d)}).reduce(function(a,b){return a+b.price},0)});var mx=Math.max.apply(null,per.concat([1]));
+ $('#wbars').innerHTML=days.map(function(d,i){return '<div class="'+(+d===+today?'today':'')+'"><b>€'+per[i]+'</b><i style="height:'+Math.max(4,per[i]/mx*170)+'px"></i>'+['ma','di','wo','do','vr','za','zo'][i]+'</div>'}).join('');
+ var cnt={};ok.forEach(function(b){cnt[b.svc]=(cnt[b.svc]||0)+1});var top=Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a]}).slice(0,6),m2=Math.max.apply(null,top.map(function(k){return cnt[k]}).concat([1]));
+ $('#pop').innerHTML=top.map(function(k){return '<div class="hbar"><span>'+esc(k)+'</span><i style="width:'+(cnt[k]/m2*100)+'%;background:var(--c-'+cat(k)+')"></i><span>'+cnt[k]+'</span></div>'}).join('')||'<div class="empty">Nog geen afspraken deze week.</div>'}
+})();
+</script>
+</body>
+</html>
