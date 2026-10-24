@@ -599,7 +599,7 @@ function stepsBar(){var L=stepList(),i=L.indexOf(st.step),n=L.length,names={1:'K
 function relDay(d){var t=new Date();t.setHours(0,0,0,0);var diff=Math.round((d-t)/864e5);return diff===0?'Vandaag':diff===1?'Morgen':DN[d.getDay()].charAt(0).toUpperCase()+DN[d.getDay()].slice(1)}
 function picked(){var s=svc(st.svc),o=curOpt();if(!s)return '';var bits=[esc(svcLabel())];if(o&&o[3])bits.push(esc(o[0])+' haar');
  var when=st.step>3&&st.day&&st.time!=null?'<div class="pk-w">'+relDay(st.day)+' '+st.day.getDate()+' '+MN[st.day.getMonth()]+' om '+hm(st.time)+'</div>':'';
- return '<div class="pk"><div><b>'+bits.join(' · ')+'</b><span>'+(s.from?'vanaf ':'')+eur(total())+' · ongeveer '+dur()+' min</span>'+when+'</div><button type="button" class="pk-e" data-go="1">Wijzig</button></div>'}
+ return '<div class="pk"><div><b>'+bits.join(' · ')+'</b><span>'+(o?(s.from?'vanaf ':'')+eur(total())+' · ongeveer '+dur()+' min':'Prijs volgens haarlengte')+'</span>'+when+'</div><button type="button" class="pk-e" data-go="1">Wijzig</button></div>'}
 function freeDays(){var out=[],d=new Date();d.setHours(0,0,0,0);for(var i=0;i<28&&out.length<10;i++){if(HOURS[d.getDay()]&&slots(d).some(function(x){return x.free}))out.push(new Date(d));d.setDate(d.getDate()+1)}return out}
 function sum(){var s=svc(st.svc),o=curOpt();$('#sS').textContent=s?svcLabel():'Nog niet gekozen';
  $('#sL').textContent=o&&o[3]?o[0]:(s?'Niet van toepassing':'Nog niet gekozen');
