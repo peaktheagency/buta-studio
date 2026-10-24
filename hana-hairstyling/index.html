@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name="robots" content="noindex,nofollow"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Hana Hairstyling Borgerhout</title>
@@ -554,6 +554,8 @@ var SERV=[
 ];
 /* opening hours in minutes from midnight; index 0 = Sunday; null = closed */
 var HOURS=[null,null,[720,1080],[960,1215],[600,1200],[600,1200],[600,1080]];
+/* openingsuren uit het beheerpaneel, als die op dit toestel zijn aangepast */
+try{var _h=JSON.parse(localStorage.getItem('hana_hours')||'null');if(_h){var _m=function(s){var p=String(s).split(':');return +p[0]*60+(+p[1]||0)};HOURS=[0,1,2,3,4,5,6].map(function(d){var x=_h[d];return x&&x.length===2?[_m(x[0]),_m(x[1])]:null})}}catch(e){}
 var DN=['zondag','maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag'],DS=['zo','ma','di','wo','do','vr','za'],MN=['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december'];
 function hm(m){return ('0'+Math.floor(m/60)).slice(-2)+':'+('0'+m%60).slice(-2)}
 function key(d){return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)}

@@ -257,6 +257,45 @@ select.f,input.f{min-height:44px;border:1px solid var(--line);border-radius:12px
  .sb,.tabbar,.acts-top,.dn,.ia,.next .acts,.tools,.toast,.kpis{display:none!important}
  #app.on{display:block}.mn{padding:0}body{background:#fff}.card{border:0}.it{break-inside:avoid}
 }
+
+/* uren: dagstrook, uurgroepen, openingsuren */
+.fl{display:block;font-size:14.5px;margin-bottom:2px}
+.dstrip{display:flex;gap:6px;overflow-x:auto;padding:4px 2px 8px;scrollbar-width:thin}
+.dc{flex:none;width:70px;border:1px solid var(--line);background:#fff;border-radius:12px;padding:8px 0 7px;text-align:center;cursor:pointer;font:inherit;color:var(--ink)}
+.dc small{display:block;font-size:12px;color:var(--soft);font-weight:700}
+.dc b{display:block;font-size:22px;line-height:1.15;font-variant-numeric:tabular-nums}
+.dc em{display:block;font-style:normal;font-size:12px;font-weight:700;color:var(--green)}
+.dc.full em{color:var(--red)}
+.dc.x{background:transparent;opacity:.5}.dc.x em{color:var(--soft)}
+.dc[aria-pressed=true]{background:var(--petrol);border-color:var(--petrol);color:#fff;opacity:1}
+.dc[aria-pressed=true] small,.dc[aria-pressed=true] em{color:#fff}
+.od{display:flex!important;flex-direction:row!important;align-items:center;gap:10px;font-size:14px!important;color:var(--soft);font-weight:600}
+.od input{max-width:190px;min-height:40px!important;padding:6px 10px!important}
+.dayh{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--stone);border-radius:10px;padding:9px 12px;font-size:14.5px;margin:4px 0 10px}
+.dayh b{text-transform:capitalize}
+.tg{margin-bottom:12px}
+.tgh{display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);border-bottom:1px solid var(--line);padding-bottom:5px;margin-bottom:8px}
+.tgh span{font-weight:600;letter-spacing:0;text-transform:none}
+.tg .times button{min-width:0;flex:0 0 calc((100% - 18px)/4)}
+@media(min-width:700px){.tg .times button{flex-basis:calc((100% - 30px)/6)}}
+.nofree{display:grid;gap:10px;justify-items:start}
+.hrs{border-top:1px solid var(--line)}
+.hr-r{display:grid;grid-template-columns:minmax(84px,110px) 52px minmax(0,1fr) auto minmax(0,1fr);gap:8px;align-items:center;padding:9px 20px;border-bottom:1px solid var(--line)}
+.hr-r>*{min-width:0}
+.hr-r>b{text-transform:capitalize;font-size:15.5px;line-height:1.2}
+.hr-r>b small{display:block;text-transform:none;font-size:12px;color:var(--gold);font-weight:700}
+.hr-r.td{background:#FFF8EA}
+.hr-r select{min-height:44px;width:100%;padding:0 8px;font-variant-numeric:tabular-nums}
+.hr-r .tt{color:var(--soft);font-size:13.5px}
+.hr-r .cl{grid-column:3/-1;color:var(--soft);font-weight:600}
+.hr-r.off>b{color:var(--soft)}
+.hrs-n{padding:12px 20px 18px;font-size:13.5px;color:var(--soft);margin:0}
+.fg>*,#nDS,#nT,#mT{min-width:0}
+.dstrip{max-width:100%}
+.dayh b{text-transform:none}
+@media(max-width:560px){.hr-r{grid-template-columns:74px 48px minmax(0,1fr) auto minmax(0,1fr);gap:6px;padding:9px 12px}.hr-r>b{font-size:14.5px}.hr-r select{padding:0 4px;font-size:15px}.hr-r .tt{font-size:12.5px}.hrs-n{padding:12px 14px 16px}}
+.g2>*,.str>*,.str>div>*,.two>*{min-width:0}
+.str input.f{width:100%}
 </style>
 </head>
 <body>
@@ -431,8 +470,8 @@ var S=sofLoad(), today=ymd(new Date()), cur=today, view='vandaag', ME=null, agMo
 var CAT={};Object.keys(SOF.cats).forEach(function(k){CAT[k]=SOF.cats[k].n});var ADMKEY=SOF.id+'_admin';
 var PAY={cash:'Cash',kaart:'Bancontact / kaart',payconiq:'Payconiq',bon:'Cadeaubon'};
 function catColor(k){return (SOF.cats[k]||{c:'var(--petrol)'}).c}
-function reload(){S=sofLoad();if(SOF.importWeb){try{if(SOF.importWeb(S))sofSave(S)}catch(e){}}S.settings=S.settings||{};if(!S.settings.ownerPin)S.settings.ownerPin=SOF.ownerPin||'2018';S.staff.forEach(function(s){if(!s.pin)s.pin='0000'})}
-function save(){sofSave(S);if(SOF.mirror){try{SOF.mirror(S)}catch(e){}}}
+function reload(){S=sofLoad();if(SOF.importWeb){try{if(SOF.importWeb(S))sofSave(S)}catch(e){}}S.settings=S.settings||{};if(S.settings.hours)SOF.hours=S.settings.hours;if(!S.settings.ownerPin)S.settings.ownerPin=SOF.ownerPin||'2018';S.staff.forEach(function(s){if(!s.pin)s.pin='0000'})}
+function save(){sofSave(S);if(S.settings&&S.settings.hours){try{localStorage.setItem((SOF.id||'salon')+'_hours',JSON.stringify(S.settings.hours))}catch(e){}}if(SOF.mirror){try{SOF.mirror(S)}catch(e){}}}
 reload();
 function isOwner(){return ME&&ME.role==='owner'}
 function mine(b){return isOwner()||b.staff===ME.id}
@@ -562,7 +601,7 @@ function dayClosed(d){return !SOF.hours[parseYmd(d).getDay()]||S.closed.indexOf(
 function vVandaag(){
  var bs=S.bookings.filter(function(b){return b.date===cur&&mine(b)}).sort(function(a,b){return a.start.localeCompare(b.start)}),lv=bs.filter(live);
  var isT=cur===today,nm=nowMin();
- var html='<div class="top"><h1><small>'+(isOwner()?'Hele salon':'Mijn dag · '+esc(staffBy(ME.id).n))+'</small>'+dayLabel(cur)+' · '+fmtS(cur)+'</h1>'+dateNav()+'</div>';
+ var hT=SOF.hours[parseYmd(cur).getDay()];var html='<div class="top"><h1><small>'+(isOwner()?'Hele salon':'Mijn dag · '+esc(staffBy(ME.id).n))+' · '+(dayClosed(cur)?'gesloten':'open '+hT[0]+' – '+hT[1])+'</small>'+dayLabel(cur)+' · '+fmtS(cur)+'</h1>'+dateNav()+'</div>';
  html+=topActions().replace('class="acts-top"','class="acts-top" style="margin-bottom:16px"');
  var nxt=isT?lv.filter(function(b){return b.status==='bevestigd'&&toMin(b.start)+b.dur>nm})[0]:null;
  if(nxt){var mins=toMin(nxt.start)-nm;html+='<div class="next"><div class="t">'+nxt.start+'</div><div class="i"><small>'+(mins>0?'Volgende klant · over '+(mins>=60?Math.floor(mins/60)+' u '+(mins%60)+' min':mins+' min'):'Nu bezig')+'</small><b>'+esc(nxt.name)+'</b><span>'+esc(svcTxt(nxt))+(isOwner()&&!SOF.ownerStaff?' · bij '+esc(staffBy(nxt.staff).n):'')+'</span></div><div class="acts" style="margin:0"><button class="btn g s" data-pay="'+nxt.id+'">Afrekenen</button><button class="btn l s" data-open="'+nxt.id+'">Details</button></div></div>'}
@@ -773,7 +812,7 @@ function vInst(){
   '<div style="padding:14px 20px"><button class="btn l s" id="addSt">+ Medewerker toevoegen</button></div></div>';
  html+='<div style="display:grid;gap:16px;align-content:start"><div class="card"><h2>Jouw pincode</h2><p class="sub">Pincode voor de eigenaar (alles beheren).</p><div class="fg" style="padding:0 20px 18px"><div class="two"><input id="op" class="pinin" style="width:100%" inputmode="numeric" maxlength="4" value="'+esc(S.settings.ownerPin)+'" aria-label="Pincode eigenaar"><button class="btn" id="ops">Bewaren</button></div></div></div>';
  html+='<div class="card"><h2>Sluitingsdagen</h2><p class="sub">Feestdagen, verlof, opleiding. Op deze dagen kan niemand boeken.</p><div class="fg" style="padding:0 20px 18px"><div class="two"><input type="date" id="cd" min="'+today+'" aria-label="Datum"><button class="btn" id="ca">Toevoegen</button></div>'+(S.closed.length?S.closed.slice().sort().map(function(d){return '<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--stone);padding:8px 0"><span>'+fmtD(d)+'</span><button class="btn r s" data-cr="'+d+'">Verwijder</button></div>'}).join(''):'<span style="color:var(--soft)">Geen sluitingsdagen ingesteld.</span>')+'</div></div>';
- html+='<div class="card"><h2>Openingsuren</h2><p class="sub">'+hoursTxt()+'</p></div>';
+ var tdw=parseYmd(today).getDay();html+='<div class="card" id="hrsCard"><h2>Openingsuren</h2><p class="sub">Zet een dag open of dicht en kies van wanneer tot wanneer. De agenda en het online boeken volgen meteen.</p><div class="hrs">'+[1,2,3,4,5,6,0].map(function(d){var h=SOF.hours[d],isT=d===tdw;return '<div class="hr-r'+(isT?' td':'')+(h?'':' off')+'"><b>'+DAYS_L[d]+(isT?'<small>vandaag</small>':'')+'</b><label class="sw" title="Open"><input type="checkbox" data-ho="'+d+'" '+(h?'checked':'')+' aria-label="'+DAYS_L[d]+' open"><span></span></label>'+(h?'<select class="f" data-hf="'+d+'" aria-label="'+DAYS_L[d]+' open vanaf">'+tOpts(h[0])+'</select><span class="tt">tot</span><select class="f" data-ht="'+d+'" aria-label="'+DAYS_L[d]+' open tot">'+tOpts(h[1])+'</select>':'<span class="cl">Gesloten</span>')+'</div>'}).join('')+'</div><p class="hrs-n">Eén dag dicht, zoals een feestdag of verlof? Gebruik dan <b>Sluitingsdagen</b> hierboven.</p></div>';
  html+='<div class="card"><h2>Gegevens</h2><p class="sub">Exporteer of ruim de demo-afspraken op voor je live gaat.'+(FRAMED?' Exporteren naar CSV kan in de versie op je computer.':'')+'</p><div class="acts" style="padding:0 20px 18px"><button class="btn l s nofr" id="ex1">Afspraken (CSV)</button><button class="btn r s" id="dm">Demo-afspraken wissen</button></div></div></div></div>';
  $('#view').innerHTML=html;
  function upd(i,f,msg){reload();f(S.staff[i]);save();if(msg)toast(msg)}
@@ -787,6 +826,15 @@ function vInst(){
  $('#ops').onclick=function(){var v=$('#op').value.replace(/\D/g,'');if(v.length!==4){toast('Een pincode heeft 4 cijfers.');return}reload();S.settings.ownerPin=v;save();toast('Je pincode is bewaard.')};
  $('#ca').onclick=function(){var v=$('#cd').value;if(!v)return;reload();if(S.closed.indexOf(v)<0)S.closed.push(v);save();draw();var n=S.bookings.filter(function(b){return b.date===v&&b.status==='bevestigd'}).length;if(n)toast('Let op: er staan al '+n+' afspraken op die dag.')};
  $$('[data-cr]').forEach(function(b){b.onclick=function(){reload();S.closed=S.closed.filter(function(d){return d!==b.dataset.cr});save();draw()}});
+ function setHours(d,val,msg){reload();var H={};[0,1,2,3,4,5,6].forEach(function(k){H[k]=SOF.hours[k]?SOF.hours[k].slice():null});H[d]=val;
+  if(val&&!SOF.hours[d]){S.staff.forEach(function(s){if(s.active!==false&&s.d.indexOf(d)<0){s.d.push(d);s.d.sort()}})}
+  S.settings.hours=H;SOF.hours=H;save();
+  var out=S.bookings.filter(function(b){if(b.date<today||!live(b)||b.status!=='bevestigd'&&!isReq(b))return false;if(parseYmd(b.date).getDay()!==d)return false;return !val||toMin(b.start)<toMin(val[0])||toMin(b.start)+b.dur>toMin(val[1])}).length;
+  draw();toast(msg+(out?' Let op: '+out+' afspra'+(out===1?'ak valt':'ken vallen')+' buiten deze uren.':''))}
+ $$('[data-ho]').forEach(function(c){c.onchange=function(){var d=+c.dataset.ho;reload();S.settings.lastHours=S.settings.lastHours||{};if(!c.checked&&SOF.hours[d])S.settings.lastHours[d]=SOF.hours[d].slice();save();setHours(d,c.checked?(S.settings.lastHours[d]||['10:00','18:00']):null,DAYS_L[d].replace(/^./,function(x){return x.toUpperCase()})+(c.checked?' is nu open.':' is nu gesloten.'))}});
+ $$('[data-hf],[data-ht]').forEach(function(c){c.onchange=function(){var d=+(c.dataset.hf||c.dataset.ht),f=$('[data-hf="'+d+'"]').value,to=$('[data-ht="'+d+'"]').value;
+  if(toMin(to)-toMin(f)<60){toast('Sluiten moet minstens een uur na openen zijn.');draw();return}
+  reload();S.settings.lastHours=S.settings.lastHours||{};S.settings.lastHours[d]=[f,to];save();setHours(d,[f,to],DAYS_L[d].replace(/^./,function(x){return x.toUpperCase()})+': open '+f+' – '+to+'.')}});
  $('#ex1').onclick=csvAppts;
  $('#dm').onclick=function(){reload();var n=S.bookings.filter(function(b){return b.demo}).length;S.bookings=S.bookings.filter(function(b){return !b.demo});S.blocks=S.blocks.filter(function(b){return !b.demo});S.customers={};save();toast(n+' demo-afspraken gewist.');draw()};
 }
@@ -797,6 +845,7 @@ function vUitleg(){
  ['Klant komt binnen en is klaar','Tik op <b>✓ Afrekenen</b>, kies hoe ze betaalt (cash, kaart, Payconiq). Klaar. De afspraak wordt groen.'],
  ['Klant zonder afspraak','Tik op <b>+ Walk-in</b>, kies de behandeling. Het paneel zoekt zelf het eerste vrije moment en de vrije collega.'],
  ['Afspraak aan de telefoon','Tik op <b>+ Afspraak</b>. Kies behandeling, dag en een vrij uur, typ naam en gsm. Vaste klanten vult het paneel zelf aan.'],
+ ['Openingsuren aanpassen','Ga naar <b>Instellingen</b> en dan <b>Openingsuren</b>. Zet een dag aan of uit en kies van wanneer tot wanneer. Eén losse dag dicht, zoals een feestdag? Gebruik <b>Sluitingsdagen</b>.'],
  ['Klant komt niet','Tik op <b>No-show</b>. Na 2 keer krijgt de klant een rood label, zodat je een voorschot kan vragen.'],
  ['Verplaatsen of annuleren','Tik op de naam van de klant. Onderaan kies je een andere dag, uur of collega. Annuleren kan daar ook.'],
  ['Herinneringen sturen','Open elke dag <b>Herinneringen</b> en tik bij elke klant van morgen op <b>Stuur</b>. WhatsApp opent met het bericht al klaar.'],
@@ -823,13 +872,13 @@ function openAppt(id){
  if(b.status==='bevestigd')h+='<button class="btn ok w100" id="pay" style="min-height:56px;font-size:17px;margin:6px 0 4px">✓ Klant is geweest · afrekenen</button>';
  h+='<div class="acts">'+(b.phone?'<a class="btn l s" href="'+telLink(b.phone)+'">'+IC_TEL+'Bellen</a><a class="btn l s" href="'+waLink(b.phone,'Hallo '+b.name+', hier '+SOF.short+'. Even over je afspraak op '+fmtD(b.date)+' om '+b.start+'.')+'" target="_blank" rel="noopener">'+IC_WA+'WhatsApp</a>':'')+(b.phone?'<button class="btn l s" id="toC">Klantenfiche</button>':'')+'</div>';
  h+='<div class="sec"><h3>Opmerking bij deze afspraak</h3><div class="fg"><textarea id="bn" placeholder="Bv. wil dezelfde kleur als vorige keer">'+esc(b.note||'')+'</textarea><button class="btn l s" id="bns">Opmerking bewaren</button></div></div>';
- h+='<div class="sec"><h3>Verplaatsen</h3><div class="fg"><div class="two"><label>Dag<input type="date" id="mD" value="'+b.date+'"></label><label>Specialiste<select id="mS">'+S.staff.filter(function(s){return s.active!==false&&(isOwner()||s.id===b.staff)}).map(function(s){return '<option value="'+s.id+'" '+(s.id===b.staff?'selected':'')+'>'+esc(s.n)+'</option>'}).join('')+'</select></label></div><div><b style="font-size:14.5px">Vrije uren</b><div class="times" id="mT" style="margin-top:6px"></div></div><div id="mW"></div><button class="btn" id="mv">Verplaats afspraak</button></div></div>';
+ h+='<div class="sec"><h3>Verplaatsen</h3><div class="fg"><div class="two"><label>Dag<input type="date" id="mD" value="'+b.date+'"></label><label>Specialiste<select id="mS">'+S.staff.filter(function(s){return s.active!==false&&(isOwner()||s.id===b.staff)}).map(function(s){return '<option value="'+s.id+'" '+(s.id===b.staff?'selected':'')+'>'+esc(s.n)+'</option>'}).join('')+'</select></label></div><div><b style="font-size:14.5px">Vrije uren</b><div id="mT" style="margin-top:6px"></div></div><div id="mW"></div><button class="btn" id="mv">Verplaats afspraak</button></div></div>';
  h+='<div class="sec"><h3>Status</h3><div class="acts">'+[['no-show','Niet gekomen (no-show)'],['geannuleerd','Annuleren'],['bevestigd','Terug naar bevestigd']].filter(function(x){return x[0]!==b.status}).map(function(x){return '<button class="btn '+(x[0]==='bevestigd'?'l':'r')+' s" data-st="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</div></div>';
  drawer(b.name,h);
  var pick=null;
  function fill(){reload();var d=$('#mD').value,s=$('#mS').value,hh=SOF.hours[parseYmd(d).getDay()],o='';pick=null;
-  if(hh&&S.closed.indexOf(d)<0){for(var t=toMin(hh[0]);t+b.dur<=toMin(hh[1]);t+=15){if(staffFree(S,s,d,t,b.dur,b.id)){var curT=d===b.date&&toHM(t)===b.start&&s===b.staff;o+='<button type="button" data-t="'+t+'" aria-pressed="'+curT+'">'+toHM(t)+'</button>';if(curT)pick=t}}}
-  $('#mT').innerHTML=o||'<span style="color:var(--soft)">Geen vrij uur op deze dag.</span>';
+  var ml=[];if(hh&&S.closed.indexOf(d)<0){for(var t=toMin(hh[0]);t+b.dur<=toMin(hh[1]);t+=15){if(staffFree(S,s,d,t,b.dur,b.id)){ml.push(t);if(d===b.date&&toHM(t)===b.start&&s===b.staff)pick=t}}}
+  $('#mT').innerHTML=(d?dayHead(d):'')+(timeGroups(ml,pick)||'<span style="color:var(--soft)">Geen vrij uur op deze dag.</span>');
   $$('#mT button').forEach(function(x){x.onclick=function(){pick=+x.dataset.t;$$('#mT button').forEach(function(y){y.setAttribute('aria-pressed',y===x)})}});
   var sk=b.services.map(function(x){return x.k}),st=staffBy(s);$('#mW').innerHTML=canDo(st,sk)?'':'<div class="warn">'+esc(st.n)+' doet normaal geen '+esc(sk.map(function(k){return CAT[k]}).join(', ').toLowerCase())+'.</div>'}
  fill();$('#mD').onchange=fill;$('#mS').onchange=fill;
@@ -871,6 +920,17 @@ function catOpts(sel){return MENU.map(function(g,i){return '<option value="'+i+'
 function svcOpts(ci,sel){var g=MENU[ci];return g.items.map(function(s){return s.o.map(function(o,j){var v=s.id+'|'+j;return '<option value="'+v+'" '+(v===sel?'selected':'')+'>'+esc(s.n+(o.n?' · '+o.n:''))+' — '+durTxt(o.m)+' · '+eur(o.p)+'</option>'}).join('')}).join('')}
 function catOf(v){var id=v.split('|')[0];for(var i=0;i<MENU.length;i++)if(MENU[i].items.some(function(s){return s.id===id}))return i;return 0}
 function svcFrom(v){var a=v.split('|'),f=findSvc(a[0]),o=f.s.o[+a[1]]||f.s.o[0];return {id:f.s.id,o:+a[1],k:f.g.k,cat:f.g.cat,n:f.s.n+(o.n?' · '+o.n:''),m:o.m,p:o.p}}
+function timeGroups(list,pick){
+ var G=[['Ochtend',0,720],['Middag',720,1020],['Avond',1020,1440]];
+ return G.map(function(g){var l=list.filter(function(m){return m>=g[1]&&m<g[2]});if(!l.length)return '';
+  return '<div class="tg"><div class="tgh">'+g[0]+'<span>'+l.length+' vrij</span></div><div class="times">'+l.map(function(m){return '<button type="button" data-t="'+m+'" aria-pressed="'+(m===pick)+'">'+toHM(m)+'</button>'}).join('')+'</div></div>'}).join('')}
+function dayStrip(sel,countFn){var h='';
+ for(var i=0;i<14;i++){var dd=addDays(today,i),cl=dayClosed(dd),n=cl?0:countFn(dd),dt=parseYmd(dd);
+  h+='<button type="button" class="dc'+(cl?' x':n?'':' full')+'" data-d="'+dd+'" aria-pressed="'+(dd===sel)+'"><small>'+(i===0?'Vandaag':i===1?'Morgen':DAYS[dt.getDay()])+'</small><b>'+dt.getDate()+'</b><em>'+(cl?'dicht':n?n+' vrij':'vol')+'</em></button>'}
+ return '<div class="dstrip">'+h+'</div>'}
+function dayHead(d){var h=SOF.hours[parseYmd(d).getDay()];return '<div class="dayh"><b>'+DAYS_L[parseYmd(d).getDay()].replace(/^./,function(x){return x.toUpperCase()})+' '+fmtS(d).replace(/^\S+\s/,'')+'</b><span>'+(dayClosed(d)?'Gesloten':'Open '+h[0]+' – '+h[1])+'</span></div>'}
+function firstFreeDay(countFn,from){for(var i=0;i<60;i++){var dd=addDays(from||today,i);if(!dayClosed(dd)&&countFn(dd))return dd}return null}
+function tOpts(v){var o='',seen=false;for(var m=360;m<=1380;m+=15){var x=toHM(m);if(x===v)seen=true;o+='<option'+(x===v?' selected':'')+'>'+x+'</option>'}return (seen||!v?'':'<option selected>'+v+'</option>')+o}
 function newAppt(p,walk){
  p=p||{};reload();
  var DEF=(findSvc('gellak')?'gellak':MENU[0].items[0].id)+'|0';var sel=(p.sel&&p.sel.length?p.sel:[p.svc||DEF]).filter(function(v){return findSvc(v.split('|')[0])});if(!sel.length)sel=[DEF];
@@ -879,7 +939,7 @@ function newAppt(p,walk){
  h+='<div class="two"><label>Naam klant<input id="nN" list="cl" value="'+esc(p.name||'')+'" autocomplete="off" placeholder="'+(walk?'Optioneel':'Voornaam')+'"></label><label>Gsm<input id="nG" type="tel" inputmode="tel" value="'+esc(p.phone||'')+'" placeholder="0470 12 34 56"></label></div><datalist id="cl">'+Object.keys(names).slice(0,500).map(function(n){return '<option value="'+esc(n)+'">'}).join('')+'</datalist><div id="cI"></div>';
  h+='<div id="svcs"></div><button type="button" class="lnk" id="addS" style="justify-self:start">+ Nog een behandeling</button>';
  h+='<label>Specialiste<select id="nP"></select></label>';
- if(!walk)h+='<label>Dag<input type="date" id="nD" value="'+(p.date&&p.date>=today?p.date:today)+'"></label><div><b style="font-size:14.5px">Vrij uur</b><div class="times" id="nT" style="margin-top:6px"></div></div>';
+ if(!walk)h+='<div><b class="fl">Dag</b><div id="nDS"></div><label class="od">Andere datum<input type="date" id="nD" min="'+today+'" value="'+(p.date&&p.date>=today?p.date:today)+'"></label></div><div><b class="fl">Vrij uur</b><div id="nDH"></div><div id="nT"></div></div>';
  h+='<div id="nI"></div><label>Opmerking <span style="font-weight:500;color:var(--soft)">(optioneel)</span><textarea id="nO"></textarea></label><button class="btn g" id="nSave" style="min-height:56px;font-size:17px">'+(walk?'Walk-in nu inplannen':'Afspraak bewaren')+'</button></div>';
  drawer(walk?'Walk-in':'Nieuwe afspraak',h);
  var pick=typeof p.time==='number'?p.time:null;
@@ -899,13 +959,19 @@ function newAppt(p,walk){
  function calc(){reload();staffOpts();var pref=$('#nP').value||null,d=dur(),sk=skills();
   if(walk){var now=new Date(),t0=Math.ceil(nowMin()/15)*15,sl=dayClosed(today)?null:slotsFor(S,today,d,sk,pref,new Date(now.getTime()-SOF.minLeadMin*60000)).filter(function(x){return x.t>=t0})[0];
    $('#nI').innerHTML=sl?'<div class="info">Eerst vrij: <b>vandaag om '+toHM(sl.t)+'</b> bij <b>'+esc(staffBy(pref||leastBusy(S,today,sl.staff)).n)+'</b> · '+durTxt(d)+' · '+eur(items().reduce(function(s,x){return s+x.p},0))+'</div>':'<div class="warn">'+(dayClosed(today)?'Vandaag is de salon gesloten.':'Vandaag is er niemand meer vrij voor deze behandeling.')+'</div>';return sl}
-  var dd=$('#nD').value;
-  if(dayClosed(dd)){$('#nT').innerHTML='';$('#nI').innerHTML='<div class="warn">Op deze dag is de salon gesloten.</div>';pick=null;return}
-  var sl2=slotsFor(S,dd,d,sk,pref,new Date(0));
-  if(dd===today){var t0=nowMin();sl2=sl2.filter(function(x){return x.t>=t0-15})}
+  var dd=$('#nD').value||today;
+  function freeOn(x){var l=slotsFor(S,x,d,sk,pref,new Date(0));if(x===today){var t0=nowMin();l=l.filter(function(y){return y.t>=t0-15})}return l}
+  function cnt(x){return freeOn(x).length}
+  var ds=$('#nDS'),sx=ds.firstChild?ds.firstChild.scrollLeft:0;ds.innerHTML=dayStrip(dd,cnt);var strip=ds.firstChild;strip.scrollLeft=sx;
+  var on=$('.dc[aria-pressed=true]',strip);if(on&&(on.offsetLeft<strip.scrollLeft||on.offsetLeft+on.offsetWidth>strip.scrollLeft+strip.clientWidth))strip.scrollLeft=on.offsetLeft-8;
+  $$('.dc',strip).forEach(function(c){c.onclick=function(){$('#nD').value=c.dataset.d;pick=null;calc()}});
+  $('#nDH').innerHTML=dayHead(dd);
+  var sl2=dayClosed(dd)?[]:freeOn(dd);
   if(pick!==null&&!sl2.some(function(x){return x.t===pick}))pick=null;
-  $('#nT').innerHTML=sl2.map(function(x){return '<button type="button" data-t="'+x.t+'" aria-pressed="'+(x.t===pick)+'">'+toHM(x.t)+'</button>'}).join('');
-  $('#nI').innerHTML=sl2.length?'<div class="info">'+durTxt(d)+' · '+eur(items().reduce(function(s,x){return s+x.p},0))+(pick===null?' · kies een uur':' · '+toHM(pick))+'</div>':'<div class="warn">Geen vrij uur op deze dag'+(pref?' voor '+esc(staffBy(pref).n):'')+'. Probeer een andere dag.</div>';
+  $('#nT').innerHTML=timeGroups(sl2.map(function(x){return x.t}),pick);
+  if(sl2.length)$('#nI').innerHTML='<div class="info">'+durTxt(d)+' · '+eur(items().reduce(function(s,x){return s+x.p},0))+(pick===null?' · <b>kies een uur</b>':' · <b>'+DAYS[parseYmd(dd).getDay()]+' '+fmtS(dd).replace(/^\S+\s/,'')+' om '+toHM(pick)+'</b>')+'</div>';
+  else{var fd=firstFreeDay(cnt,dd);$('#nI').innerHTML='<div class="warn nofree">'+(dayClosed(dd)?'Op deze dag is de salon gesloten.':'Geen vrij uur op deze dag'+(pref?' voor '+esc(staffBy(pref).n):'')+'.')+(fd?'<button type="button" class="btn l s" id="nFirst">Eerst vrij: '+DAYS_L[parseYmd(fd).getDay()]+' '+fmtS(fd).replace(/^\S+\s/,'')+' →</button>':'')+'</div>';
+   if(fd)$('#nFirst').onclick=function(){$('#nD').value=fd;pick=null;calc()}}
   $$('#nT button').forEach(function(x){x.onclick=function(){pick=+x.dataset.t;calc()}});}
  function custInfo(){var ph=$('#nG').value,k=phoneKey(ph);if(k.length<10){$('#cI').innerHTML='';return}
   var c=custList().filter(function(x){return x.k===k})[0];if(!c){$('#cI').innerHTML='<div class="info">Nieuwe klant.</div>';return}
