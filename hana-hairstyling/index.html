@@ -337,6 +337,28 @@ section,[id]{scroll-margin-top:84px}
 .rv{opacity:0;transform:translateY(18px);transition:opacity .8s ease,transform .8s ease}
 .rv.in{opacity:1;transform:none}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}.rv{opacity:1;transform:none}}
+.prog{margin:0 0 22px}
+.prog .pt{display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:13px;line-height:1;letter-spacing:.08em;text-transform:uppercase;color:var(--stone)}
+.prog .pb{height:4px;background:var(--line);margin-top:10px;overflow:hidden}
+.prog .pb i{display:block;height:100%;background:var(--gold);transition:width .35s ease}
+.bk{background:none;border:0;padding:8px 0;font-weight:600;font-size:15px;line-height:1;font-family:inherit;color:var(--ink);cursor:pointer;text-decoration:underline;text-underline-offset:4px;text-decoration-color:var(--gold)}
+.pk{display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--paper);border:1px solid var(--line);border-left:3px solid var(--gold);padding:12px 14px;margin:0 0 20px}
+.pk>div{min-width:0}.pk b{display:block;font-weight:600;font-size:16px}.pk span{display:block;font-size:14px;color:var(--stone);margin-top:2px}
+.pk-w{font-size:15px;font-weight:600;color:var(--ink);margin-top:4px}
+.pk-e{flex:none;background:none;border:1px solid var(--line);padding:8px 12px;font-weight:600;font-size:14px;line-height:1;font-family:inherit;cursor:pointer;color:var(--ink)}
+.opt{position:relative;padding-right:40px!important}
+.opt .go{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:24px;color:var(--gold);line-height:1}
+.firstc{display:grid;grid-template-columns:1fr auto;align-items:center;gap:2px 12px;width:100%;text-align:left;background:var(--ink);color:#fff;border:0;padding:14px 16px;margin:0 0 18px;cursor:pointer;font-family:inherit}
+.firstc small{grid-column:1;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
+.firstc b{grid-column:1;font-size:17px;font-weight:600}
+.firstc span{grid-column:2;grid-row:1/3;font-weight:600;font-size:15px;color:var(--gold)}
+.lbl{font-weight:600;font-size:13px;line-height:1;letter-spacing:.1em;text-transform:uppercase;color:var(--stone);margin:14px 0 10px}
+.hint.small{font-size:14px}
+.btn.big{width:100%;justify-content:center;min-height:56px;font-size:16px;margin-top:6px}
+.okc{display:grid;gap:10px;text-align:left;background:var(--paper);border:1px solid var(--line);padding:16px;margin:18px auto 0;max-width:420px}
+.okc span{display:block;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--stone)}.okc b{font-weight:600}
+@media(max-width:960px){.book .sum{display:none}}
+body.inbook .mbar{display:none!important}
 </style>
 
 <!-- logo, redrawn from the Instagram profile picture -->
@@ -457,7 +479,7 @@ section,[id]{scroll-margin-top:84px}
 </div></section>
 
 <section id="boeken"><div class="w">
- <div class="sh"><div><span class="lab">Online boeken</span><h2>Je afspraak in <span class="sc">vier stappen</span></h2></div><p>Je hoeft geen account aan te maken. Hanan bevestigt je afspraak via WhatsApp of sms.</p></div>
+ <div class="sh"><div><span class="lab">Online boeken</span><h2>Boek in <span class="sc">één minuut</span></h2></div><p>Tik je behandeling aan, kies een vrij uur en laat je naam en gsm-nummer achter. Geen account nodig. Hanan bevestigt via WhatsApp of sms.</p></div>
  <div class="book">
   <div class="panel" id="panel" aria-live="polite"></div>
   <aside class="sum" aria-label="Jouw afspraak">
@@ -570,54 +592,72 @@ function slots(d){var h=HOURS[d.getDay()];if(!h)return [];var out=[],now=new Dat
  for(var m=h[0];m+dur()<=h[1];m+=15){var past=isToday&&m<nm+60;out.push({m:m,free:!past&&free(dk,m)})}return out}
 function nextDays(){var out=[],d=new Date();d.setHours(0,0,0,0);while(out.length<12){if(HOURS[d.getDay()])out.push(new Date(d));d.setDate(d.getDate()+1)}return out}
 function dayName(d){return DN[d.getDay()]+' '+d.getDate()+' '+MN[d.getMonth()]}
-function stepsBar(){var names=['Behandeling','Haarlengte','Dag en uur','Gegevens'];return '<div class="steps">'+names.map(function(n,i){var k=i+1;return '<span class="'+(k===st.step?'on':k<st.step?'done':'')+'"><i>'+(k<st.step?'✓':k)+'</i>'+n+'</span>'}).join('')+'</div>'}
 function svcLabel(){var s=svc(st.svc),o=curOpt();return s?s.name+(o&&o[0]&&!o[3]?', '+o[0].toLowerCase():''):''}
+function stepList(){var s=svc(st.svc);return s&&!isLen(s)?[1,3,4]:[1,2,3,4]}
+function stepsBar(){var L=stepList(),i=L.indexOf(st.step),n=L.length,names={1:'Kies je behandeling',2:'Hoe lang is je haar?',3:'Kies dag en uur',4:'Jouw gegevens'};
+ return '<div class="prog"><div class="pt"><span>Stap '+(i+1)+' van '+n+'</span>'+(st.step>1?'<button class="bk" id="bk" type="button">‹ Terug</button>':'')+'</div><div class="pb"><i style="width:'+Math.round((i+1)/n*100)+'%"></i></div></div>'}
+function relDay(d){var t=new Date();t.setHours(0,0,0,0);var diff=Math.round((d-t)/864e5);return diff===0?'Vandaag':diff===1?'Morgen':DN[d.getDay()].charAt(0).toUpperCase()+DN[d.getDay()].slice(1)}
+function picked(){var s=svc(st.svc),o=curOpt();if(!s)return '';var bits=[esc(svcLabel())];if(o&&o[3])bits.push(esc(o[0])+' haar');
+ var when=st.step>3&&st.day&&st.time!=null?'<div class="pk-w">'+relDay(st.day)+' '+st.day.getDate()+' '+MN[st.day.getMonth()]+' om '+hm(st.time)+'</div>':'';
+ return '<div class="pk"><div><b>'+bits.join(' · ')+'</b><span>'+(s.from?'vanaf ':'')+eur(total())+' · ongeveer '+dur()+' min</span>'+when+'</div><button type="button" class="pk-e" data-go="1">Wijzig</button></div>'}
+function freeDays(){var out=[],d=new Date();d.setHours(0,0,0,0);for(var i=0;i<28&&out.length<10;i++){if(HOURS[d.getDay()]&&slots(d).some(function(x){return x.free}))out.push(new Date(d));d.setDate(d.getDate()+1)}return out}
 function sum(){var s=svc(st.svc),o=curOpt();$('#sS').textContent=s?svcLabel():'Nog niet gekozen';
  $('#sL').textContent=o&&o[3]?o[0]:(s?'Niet van toepassing':'Nog niet gekozen');
  $('#sW').textContent=st.day&&st.time!=null?dayName(st.day)+' om '+hm(st.time):'Nog niet gekozen';
  $('#sT').textContent=(s&&s.from?'vanaf ':'')+eur(total());
  $('#sNote').textContent=s&&s.from?'Bij kleuren hangt de eindprijs af van je lengte. Hanan zegt het je vooraf.':'Betalen doe je in de salon.'}
-function renderBook(){var p=$('#panel'),h=stepsBar();
+function gcal(){var s=new Date(st.day);s.setHours(0,st.time,0,0);var e=new Date(s.getTime()+dur()*6e4);var f=function(d){return d.getFullYear()+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2)+'T'+('0'+d.getHours()).slice(-2)+('0'+d.getMinutes()).slice(-2)+'00'};
+ return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent('Kapper: '+svcLabel()+' bij Hana Hairstyling')+'&dates='+f(s)+'/'+f(e)+'&ctz=Europe/Brussels&location='+encodeURIComponent('Lodewijk Van Berckenlaan 181, 2140 Borgerhout')}
+function renderBook(){var p=$('#panel'),h=st.step<5?stepsBar():'';
  if(st.step===1){var list=SERV.filter(function(s){return s.cat===st.cat});
-  h+='<h3>Wat wil je laten doen?</h3><p class="hint">Kies een soort behandeling en dan de behandeling zelf.</p><div class="cats">'+CATS.map(function(c){return '<button class="chip" aria-pressed="'+(c.id===st.cat)+'" data-cat="'+c.id+'">'+esc(c.name)+'</button>'}).join('')+'</div><div class="opts">'+
+  h+='<h3>Wat wil je laten doen?</h3><p class="hint">Tik op een behandeling. Je kan straks altijd nog terug.</p><div class="cats">'+CATS.map(function(c){return '<button type="button" class="chip" aria-pressed="'+(c.id===st.cat)+'" data-cat="'+c.id+'">'+esc(c.name)+'</button>'}).join('')+'</div><div class="opts">'+
   list.map(function(s){var sel=s.id===st.svc,min=Math.min.apply(null,s.opts.map(function(o){return o[1]}));
-   return '<button class="opt" aria-pressed="'+sel+'" data-svc="'+s.id+'"><b>'+esc(s.name)+'</b><em>'+(s.opts.length>1||s.from?'vanaf ':'')+eur(min)+'</em><small>'+(isLen(s)?'Prijs volgens haarlengte':s.opts[0][2]+' min'+(s.opts[0][0]?' · '+esc(s.opts[0][0].toLowerCase()):''))+'</small></button>'}).join('')+'</div>'+
-  '<div class="nav2"><span></span><button class="btn" id="nx" '+(st.svc?'':'disabled')+'>Volgende</button></div>'}
+   return '<button type="button" class="opt" aria-pressed="'+sel+'" data-svc="'+s.id+'"><b>'+esc(s.name)+'</b><em>'+(s.opts.length>1||s.from?'vanaf ':'')+eur(min)+'</em><small>'+(isLen(s)?'Prijs volgens haarlengte':s.opts[0][2]+' min'+(s.opts[0][0]?' · '+esc(s.opts[0][0].toLowerCase()):''))+'</small><span class="go" aria-hidden="true">›</span></button>'}).join('')+'</div>'}
  if(st.step===2){var s=svc(st.svc);
-  h+='<h3>Hoe lang is je haar?</h3><p class="hint">Kort tot aan je oren, half lang tot je schouders, lang tot voorbij je schouders.</p><div class="lens" style="grid-template-columns:repeat('+s.opts.length+',1fr)">'+
-  s.opts.map(function(o,i){return '<button class="len" aria-pressed="'+(st.opt===i)+'" data-opt="'+i+'">'+lenIcon(o[3])+'<b>'+esc(o[0])+'</b><em>'+eur(o[1])+'</em><small>ongeveer '+o[2]+' min</small></button>'}).join('')+'</div>'+
-  '<div class="nav2"><button class="btn ghost" id="bk">Terug</button><button class="btn" id="nx" '+(st.opt!=null?'':'disabled')+'>Volgende</button></div>'}
- if(st.step===3){var days=nextDays();if(!st.day)st.day=days[0];var sl=slots(st.day);
-  h+='<h3>Wanneer past het?</h3>'+(st.flash?'<p class="flash" role="alert">'+esc(st.flash)+'</p>':'')+'<p class="hint">Doorstreepte uren zijn al volzet. '+esc(svcLabel())+' duurt ongeveer '+dur()+' minuten.</p><button class="btn ghost first" id="first">Eerst mogelijke moment</button><div class="days" role="group" aria-label="Kies een dag">'+
-  days.map(function(d){return '<button class="day" aria-pressed="'+(key(d)===key(st.day))+'" data-day="'+key(d)+'"><small>'+DS[d.getDay()]+'</small><b>'+d.getDate()+'</b><small>'+MN[d.getMonth()].slice(0,3)+'</small></button>'}).join('')+'</div>'+
-  (sl.length?'<div class="times" role="group" aria-label="Kies een uur">'+sl.map(function(x){return '<button class="time" '+(x.free?'':'disabled ')+'aria-pressed="'+(st.time===x.m)+'" data-t="'+x.m+'">'+hm(x.m)+'</button>'}).join('')+'</div>':'<p class="hint">Op deze dag is de salon gesloten.</p>')+
-  '<div class="nav2"><button class="btn ghost" id="bk">Terug</button><button class="btn" id="nx" '+(st.time!=null?'':'disabled')+'>Volgende</button></div>'}
- if(st.step===4){h+='<h3>Bijna klaar</h3><p class="hint">Op dit gsm-nummer bevestigt Hanan je afspraak, via WhatsApp of sms.</p><form class="fields" id="bf" novalidate>'+
+  h+=picked()+'<h3>Hoe lang is je haar?</h3><p class="hint">Kort tot aan je oren, half lang tot je schouders, lang tot voorbij je schouders.</p><div class="lens" style="grid-template-columns:repeat('+s.opts.length+',1fr)">'+
+  s.opts.map(function(o,i){return '<button type="button" class="len" aria-pressed="'+(st.opt===i)+'" data-opt="'+i+'">'+lenIcon(o[3])+'<b>'+esc(o[0])+'</b><em>'+eur(o[1])+'</em><small>ongeveer '+o[2]+' min</small></button>'}).join('')+'</div>'}
+ if(st.step===3){var days=freeDays();
+  if(!days.length){h+=picked()+'<h3>Kies dag en uur</h3><p class="hint">De komende weken is alles volzet. Stuur Hanan een WhatsApp op 0487 46 68 54, dan zoekt ze samen met jou een moment.</p>'}
+  else{if(!st.day||!days.some(function(d){return key(d)===key(st.day)}))st.day=days[0];
+  var sl=slots(st.day).filter(function(x){return x.free}),first=null;for(var i=0;i<days.length&&!first;i++){var f=slots(days[i]).find(function(x){return x.free});if(f)first={d:days[i],m:f.m}}
+  var groups=[['Ochtend',0,720],['Middag',720,1020],['Avond',1020,1440]];
+  h+=picked()+'<h3>Kies dag en uur</h3>'+(st.flash?'<p class="flash" role="alert">'+esc(st.flash)+'</p>':'')+
+  (first?'<button type="button" class="firstc" data-fd="'+key(first.d)+'" data-fm="'+first.m+'"><small>Eerst vrije moment</small><b>'+relDay(first.d)+' '+first.d.getDate()+' '+MN[first.d.getMonth()]+' om '+hm(first.m)+'</b><span>Kies dit ›</span></button>':'')+
+  '<p class="lbl">Of kies zelf een dag</p><div class="days" role="group" aria-label="Kies een dag">'+
+  days.map(function(d){var rd=relDay(d);return '<button type="button" class="day" aria-pressed="'+(key(d)===key(st.day))+'" data-day="'+key(d)+'"><small>'+(rd==='Vandaag'||rd==='Morgen'?rd:DS[d.getDay()])+'</small><b>'+d.getDate()+'</b><small>'+MN[d.getMonth()].slice(0,3)+'</small></button>'}).join('')+'</div>'+
+  groups.map(function(g){var t=sl.filter(function(x){return x.m>=g[1]&&x.m<g[2]});if(!t.length)return '';return '<p class="lbl">'+g[0]+'</p><div class="times" role="group" aria-label="'+g[0]+'">'+t.map(function(x){return '<button type="button" class="time" aria-pressed="'+(st.time===x.m)+'" data-t="'+x.m+'">'+hm(x.m)+'</button>'}).join('')+'</div>'}).join('')+
+  '<p class="hint small">Je ziet enkel de uren waarop Hanan nog vrij is.</p>'}}
+ if(st.step===4){h+=picked()+'<h3>Jouw gegevens</h3><p class="hint">Hanan bevestigt je afspraak via WhatsApp of sms.</p><form class="fields" id="bf" novalidate>'+
   '<label for="fn">Voornaam en achternaam<input id="fn" name="name" autocomplete="name" maxlength="60" spellcheck="false" placeholder="Bijvoorbeeld Sara Peeters" value="'+esc(st.name)+'" aria-describedby="fnE"><small class="fe" id="fnE" aria-live="polite"></small></label>'+
   '<label for="fp">Gsm-nummer<input id="fp" name="tel" type="tel" autocomplete="tel" inputmode="tel" maxlength="20" placeholder="0470 12 34 56" value="'+esc(st.phone)+'" aria-describedby="fpE"><small class="fe" id="fpE" aria-live="polite"></small></label>'+
   '<label class="full" for="fo">Opmerking <span class="opt-l">(niet verplicht)</span><textarea id="fo" name="note" rows="2" maxlength="300" placeholder="Bijvoorbeeld de kleur die je wil, of dat je een foto meebrengt">'+esc(st.note)+'</textarea><small class="cnt" id="foC">'+st.note.length+' / 300</small></label>'+
   '<label class="hp" aria-hidden="true">Website<input id="fw" name="website" tabindex="-1" autocomplete="off"></label>'+
   '<div class="err full" id="er" role="alert"></div></form>'+
-  '<div class="nav2"><button class="btn ghost" id="bk">Terug</button><button class="btn" id="go">Afspraak aanvragen</button></div>'}
+  '<button class="btn big" id="go" type="button">Afspraak aanvragen</button><p class="hint small" style="text-align:center;margin-top:12px">Gratis en zonder account. Betalen doe je in de salon.</p>'}
  if(st.step===5){var txt='Hallo Hanan! Ik ben '+st.name+' en ik heb online een afspraak aangevraagd: '+svcLabel().toLowerCase()+(curOpt()&&curOpt()[3]?' ('+curOpt()[0].toLowerCase()+' haar)':'')+' op '+dayName(st.day)+' om '+hm(st.time)+'.';
-  h='<div class="okk"><svg class="mark" aria-hidden="true"><use href="#logo"/></svg><h3>Aanvraag verstuurd</h3><p>Bedankt, '+esc(st.name.split(' ')[0])+'. Je aanvraag voor '+esc(dayName(st.day))+' om '+hm(st.time)+' staat bij Hanan. Je krijgt een bevestiging op '+esc(st.phonePretty||st.phone)+'.</p>'+
-  '<div class="cta"><a class="btn" href="https://wa.me/32487466854?text='+encodeURIComponent(txt)+'" target="_blank" rel="noopener">Ook een WhatsApp sturen</a><button class="btn ghost" id="again">Nog een afspraak</button></div>'+
-  '<p style="font-size:14px;margin-top:24px">Concept: deze aanvraag verschijnt meteen in het <a href="Hana-Hairstyling-beheerpaneel.html">beheerpaneel</a> van de salon, op dit toestel. In de live versie komt ze op elk toestel binnen.</p></div>'}
+  h='<div class="okk"><svg class="mark" aria-hidden="true"><use href="#logo"/></svg><h3>Aanvraag verstuurd</h3><p>Bedankt, '+esc(st.name.split(' ')[0])+'. Hanan bevestigt je afspraak zo snel mogelijk op '+esc(st.phonePretty||st.phone)+'.</p>'+
+  '<div class="okc"><div><span>Wat</span><b>'+esc(svcLabel())+(curOpt()&&curOpt()[3]?', '+esc(curOpt()[0].toLowerCase())+' haar':'')+'</b></div><div><span>Wanneer</span><b>'+esc(dayName(st.day))+' om '+hm(st.time)+'</b></div><div><span>Waar</span><b>Lodewijk Van Berckenlaan 181, Borgerhout</b></div><div><span>Prijs</span><b>'+(svc(st.svc).from?'vanaf ':'')+eur(total())+'</b></div></div>'+
+  '<div class="cta"><a class="btn" href="'+gcal()+'" target="_blank" rel="noopener">In mijn agenda zetten</a><a class="btn ghost" href="https://wa.me/32487466854?text='+encodeURIComponent(txt)+'" target="_blank" rel="noopener">WhatsApp naar Hanan</a></div>'+
+  '<p class="hint small" style="margin-top:18px">Kan je toch niet komen? Laat het Hanan minstens 24 uur vooraf weten via WhatsApp.</p><button type="button" class="bk" id="again" style="margin-top:8px">Nog een afspraak maken</button>'+
+  '<p style="font-size:14px;margin-top:22px">Concept: deze aanvraag verschijnt meteen in het <a href="Hana-Hairstyling-beheerpaneel.html">beheerpaneel</a> van de salon, op dit toestel. In de live versie komt ze op elk toestel binnen.</p></div>'}
  p.innerHTML=h;sum()}
-function next(){var s=svc(st.svc);if(st.step===1){if(!s)return;st.step=isLen(s)?2:3;if(!isLen(s))st.opt=0;return}if(st.step===2&&st.opt==null)return;if(st.step===3&&st.time==null)return;st.flash='';st.step++}
-function back(){var s=svc(st.svc);if(st.step===3&&s&&!isLen(s))st.step=1;else st.step--}
-$('#panel').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;
- if(b.dataset.cat){st.cat=b.dataset.cat;st.svc=null;st.opt=null}
- else if(b.dataset.svc){var s=svc(b.dataset.svc);if(st.svc!==s.id){st.svc=s.id;st.opt=isLen(s)?null:0;st.time=null}}
- else if(b.dataset.opt!=null){st.opt=+b.dataset.opt;st.time=null}
+function toTop(){var t=$('#panel');if(!t)return;var r=t.getBoundingClientRect(),n=document.querySelector('nav'),off=(n?n.offsetHeight:0)+8;if(r.top<off||r.top>window.innerHeight*.4)window.scrollTo({top:r.top+window.pageYOffset-off,behavior:'smooth'})}
+function back(){var L=stepList(),i=L.indexOf(st.step);st.flash='';if(i>0)st.step=L[i-1]}
+$('#panel').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;var move=false;
+ if(b.dataset.cat){st.cat=b.dataset.cat}
+ else if(b.dataset.svc){var s=svc(b.dataset.svc);if(st.svc!==s.id){st.svc=s.id;st.opt=isLen(s)?null:0;st.time=null}st.step=isLen(s)?2:3;move=true}
+ else if(b.dataset.opt!=null){st.opt=+b.dataset.opt;st.time=null;st.step=3;move=true}
+ else if(b.dataset.go){st.step=+b.dataset.go;move=true}
  else if(b.dataset.day){var p=b.dataset.day.split('-');st.day=new Date(+p[0],+p[1]-1,+p[2]);st.time=null}
- else if(b.dataset.t){if(b.disabled)return;st.time=+b.dataset.t;st.flash=''}
- else if(b.id==='first'){var ds=nextDays();for(var i=0;i<ds.length;i++){var f=slots(ds[i]).find(function(x){return x.free});if(f){st.day=ds[i];st.time=f.m;break}}}
- else if(b.id==='nx'){next()}
- else if(b.id==='bk'){back()}
- else if(b.id==='again'){st={step:1,cat:'snit',svc:null,opt:null,day:null,time:null,name:st.name,phone:st.phone,note:''}}
+ else if(b.dataset.fd){var q=b.dataset.fd.split('-');st.day=new Date(+q[0],+q[1]-1,+q[2]);st.time=+b.dataset.fm;st.flash='';st.step=4;move=true}
+ else if(b.dataset.t){st.time=+b.dataset.t;st.flash='';st.step=4;move=true}
+ else if(b.id==='bk'){back();move=true}
+ else if(b.id==='again'){st={step:1,cat:'snit',svc:null,opt:null,day:null,time:null,name:st.name,phone:st.phone,note:''};move=true}
  else if(b.id==='go'){submitBooking();return}
- renderBook()});
+ renderBook();if(move)toTop()});
+
+(function(){var t=document.getElementById('boeken');if(!t||!('IntersectionObserver' in window))return;new IntersectionObserver(function(en){document.body.classList.toggle('inbook',en[0].isIntersecting)},{threshold:.15}).observe(t)})();
+
 
 /* ---------- form validation ---------- */
 var PARTICLES=['van','de','der','den','het','ter','ten','te','el','al','la','le','du','di','da','von','op','in','’t',"'t"];
